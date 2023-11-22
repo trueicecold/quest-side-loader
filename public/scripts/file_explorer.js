@@ -81,6 +81,21 @@ const getInstallProgress = () => {
 
         $("#progress_" + data.state).addClass("badge-warning");
         $("#progress_" + data.state).html("Processing");
+        
+        if (data.state == "copying_apk") {
+            $("#apk_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
+        }
+        else {
+            $("#apk_progress").html("");
+        }
+
+        if (data.state == "copying_obb") {
+            $("#progress_" + data.state).html(data.fileIndex + " / " + data.fileTotal);
+            $("#obb_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
+        }
+        else {
+            $("#obb_progress").html("");
+        }
     });
 }
 
@@ -102,7 +117,7 @@ const installPackage = () => {
     });
     getInstallProgress();
     clearInterval(installProgressInterval);
-    installProgressInterval = setInterval(getInstallProgress, 1000);
+    installProgressInterval = setInterval(getInstallProgress, 250);
 }
 
 $.get("/api/drive_list", (data) => {

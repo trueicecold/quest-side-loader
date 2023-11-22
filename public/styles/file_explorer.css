@@ -61,4 +61,8 @@ body.file_explorer {
         width:170px;
         display:inline-block;
     }
+
+    & #obb_progress, #apk_progress {
+        font-size:9px;
+    }
 }

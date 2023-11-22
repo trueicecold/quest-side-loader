@@ -151,18 +151,24 @@ const getInstalledPackages = async () => {
 }
 
 const pushFile = async (local_path, remote_path) => {
-    return new Promise(async (resolve, reject) => {
-        const pushTransfer = await adbDevice.push(local_path, remote_path);
-        pushTransfer.on('progress', onPushProgress);
+    const pushTransfer = await adbDevice.push(local_path, remote_path);
+    const localFileSize = fs.statSync(local_path).size;
+
+    installDetails.transferred = 0;
+    installDetails.total = localFileSize;
+
+    await new Bluebird((resolve, reject) => {
+        onPushProgress(0);
+        pushTransfer.on('progress', (stats) => {
+            onPushProgress(stats.bytesTransferred);
+        });
         pushTransfer.on('end', () => {
+            onPushProgress(localFileSize);
             resolve();
         });
         pushTransfer.on('error', (err) => {
             reject(err);
         });
-        return {
-            status: 1
-        }
     });
 }
 
@@ -171,64 +177,88 @@ let installDetails = {
 };
 const installPackage = async (package_path, has_obb = false) => {
     has_obb = has_obb == "true" ? true : false;
-    installDetails.state = "starting";
-    try {
-        if (global.adbDevice) {
-            transferStart = Date.now();
-            
-            //copy apk to temp folder
-            installDetails.state = "copying_apk";
-            await pushFile(package_path, tmp_apk);
-            
-            installDetails.state = "installing_apk";
-            await global.adbDevice.installRemote(tmp_apk);
-
-            if (has_obb) {
-                installDetails.state = "copying_obb";
-                await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
-                const recursiveFolders = await fileManager.getRecursiveFolders(package_path.substr(0, package_path.lastIndexOf(".")));
+    installDetails = {
+        state: "starting"
+    }
+    
+    if (global.adbDevice) {
+        transferStart = Date.now();
+        
+        return new Promise(async (resolve, reject) => {
+            try {
+                //copy apk to temp folder
+                installDetails.state = "copying_apk";
+                await pushFile(package_path, tmp_apk);
                 
-                //recursive create folders before copying files, due to permissions error on quest 3
-                recursiveFolders.forEach(async (item) => {
-                    if (item.directory) {
-                        await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
-                    }
-                });
-                
-                await util.delay(2000);
+                installDetails.state = "uninstalling_apk";
+                await global.adbDevice.uninstall(package_path.split("/").pop().replace(".apk", ""));
 
-                recursiveFolders.forEach(async (item) => {
-                    if (!item.directory) {
-                        await pushFile(package_path.substr(0, package_path.lastIndexOf(".")) + item.path, "/sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
-                    }
-                });
-                installDetails.state = "done";
-            }
-            else {
-                installDetails.state = "done";
-            }
+                installDetails.state = "installing_apk";
+                await global.adbDevice.installRemote(tmp_apk);
 
-            return {
-                status: 1
-            };
-        }
+                if (has_obb) {
+                    installDetails.state = "removing_obb";
+                    await shell("rm -rf /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
+
+                    await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
+                    const recursiveFolders = await fileManager.getRecursiveFolders(package_path.substr(0, package_path.lastIndexOf(".")));
+                    const fileCount = recursiveFolders.filter(item => !item.directory).length;
+                   
+                    //recursive create folders before copying files, due to permissions error on quest 3
+                    recursiveFolders.forEach(async (item) => {
+                        if (item.directory) {
+                            await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
+                        }
+                    });
+                    
+                    await util.delay(2000);
+
+                    installDetails.state = "copying_obb";
+                    installDetails.fileTotal = fileCount;
+                    installDetails.fileIndex = 1;
+
+                    Bluebird.each(recursiveFolders, async (item) => {
+                        if (!item.directory) {
+                            await pushFile(package_path.substr(0, package_path.lastIndexOf(".")) + item.path, "/sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
+                            installDetails.fileIndex++;
+                            if (installDetails.fileIndex == fileCount) {
+                                installDetails.state = "done";
+                                resolve({
+                                    status: 1
+                                });
+                            }
+                        }
+                    });
+                }
+                else {
+                    installDetails.state = "done";
+                    resolve({
+                        status: 1
+                    });
+                }
+            }
+            catch (e) {
+                resolve({
+                    status: 0,
+                    error: "Error installing package: " + e.message
+                });
+            }
+            finally {
+                shell("rm " + tmp_apk);
+            }
+        });
+    }
+    else {
         return {
             status: 0,
             error: "No device connected"
         };
     }
-    catch(e) {
-        return {
-            status: 0,
-            error: "Error installing package: " + e.message
-        };
-    }
-    finally {
-        shell("rm " + tmp_apk);
-    }
 }
 
-const onPushProgress = (stats) => {
+const onPushProgress = (transferred) => {
+
+    installDetails.transferred = transferred;
 }
 
 const getInstallProgress = async () => {
