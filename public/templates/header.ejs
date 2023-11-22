@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>WQSL</title>
+
+    <link href="styles/general.css" rel="stylesheet">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <!-- Toastr style -->
+    <link href="css/plugins/toastr/toastr.min.css" rel="stylesheet">
+
+    <!-- Gritter -->
+    <link href="js/plugins/gritter/jquery.gritter.css" rel="stylesheet">
+
+    <!-- Sumo Select -->
+    <link href="js/plugins/sumoselect/sumoselect.min.css" rel="stylesheet">
+
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body class="<%=current_page%>">
+    <div id="wrapper">
+        <%- include('sidebar') %>
+        <div id="page-wrapper" class="gray-bg">
+            <nav class="navbar navbar-static-top white-bg" role="navigation" style="margin-bottom: 0">
+                <div class="navbar-header">
+                </div>
+            </nav>
+            <% if (fs.existsSync(public_path + "/pages/" + current_page + ".ejs")) { %>
+                <%- include(public_path + "/pages/" + current_page + ".ejs");%>
+            <% } %>
+        </div>
+    </div>

@@ -1,0 +1,36 @@
+<script type="text/template" id="installed_package_template">
+    <tr>
+        <td><div class="image_container"><img class="align-middle" src="$$ICON$$"/></div></td>
+        <td class="align-middle">$$NAME$$</td>
+        <td class="align-middle">$$PACKAGE$$</td>
+        <td class="align-middle">$$VERSION$$</td>
+        <td class="align-middle">
+            <a class="btn btn-white dropdown-toggle" data-toggle="dropdown" href="#">
+                <i class="fa fa-gear"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-user">
+                <li><a href="#" class="dropdown-item">Uninstall</a>
+                </li>
+                <li><a href="#" class="dropdown-item">Backup App & OBB</a>
+                </li>
+            </ul>
+            <!--button class="btn btn-danger btn-sm" onclick="uninstallApp('')">Uninstall</button-->
+        </td>
+    </tr>
+</script>
+
+<h2>Installed Packages</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <td></td>
+            <td>Name</td>
+            <td>Package</td>
+            <td>Version</td>
+            <td>Actions</td>
+        </tr>
+    </thead>
+    <tbody id="installed_packages_container">
+    </tbody>
+</table>

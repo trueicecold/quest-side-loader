@@ -1,0 +1,62 @@
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav metismenu" id="side-menu">
+            <li class="nav-header">
+                Web Quest Side Loader
+            </li>
+            <!--li class="device_selector_container">
+                <select id="device_selector" class="form-control" onchange="changeDevice()">
+                    <option value="10.100.102.240:5555">Other</option>
+                </select>
+                <buton class="m-t-sm m-b-sm btn btn-primary btn-block btn-xs" onclick="connectDevice()">Mount Device</button>
+            </li-->
+            <li id="device_info">
+                <div class="row device_info p-w-sm m-t-lg">
+                    <div class="col-sm-12">
+                        <div>Battery: <span id="battery_level"></span> <span id="battery_charging" class="badge badge-primary">Charging</span></div>
+                        <div>Firmware: <span id="fw_version"></span></div>
+                        <div>Total Memory: <span id="total_memory"></span></div>
+                        <div>Free Memory: <span id="free_memory"></span></div>
+                        <div>Storage:</div>
+                        <span class="progress">
+                            <div id="storage_progress" class="progress-bar progress-bar-striped progress-bar-warning" role="progressbar"></div>
+                            <div id="storage_progress_container"></div>
+                        </span>
+                    </div>
+                    <div class="col-sm-12 m-t-sm">
+                        <button class="m-t-sm m-b-sm btn btn-primary btn-block btn-xs" onclick="disconnectDevice()">Unmount Device</button>
+                    </div>
+                </div>
+
+                <a href="/?v=installed_packages" class="m-t-lg"><i class="fa fa-pie-chart"></i> <span class="nav-label">Installed Packages</span></a>
+                <a href="/?v=file_explorer"><i class="fa fa-pie-chart"></i> <span class="nav-label">File Explorer</span></a>
+            </li>
+            <li id="not_connected" class="text-center m-t-lg p-w-sm">
+                <div class="mask">
+                    <div class="content">
+                        <div class="sk-spinner sk-spinner-rotating-plane"></div>
+                        <h3 class="text">Mounting device...</h3>
+                    </div>
+                </div>
+                <div class="row align-middle m-t-sm">
+                    <div class="col-sm-12">
+                        <span class="text-danger">No headsets connected</span>
+                    </div>
+                </div>
+                <div class="row align-middle m-t-sm">
+                    <div class="col-sm-9 m-t-sm">
+                        <input type="text" id="ip_address" placeholder="IP Address" class="b-r-md form-control input-sm" />
+                    </div>
+                    <div class="col-sm-3 m-t-sm p-0">
+                        <button class="align-middle btn btn-primary btn-xs" type="button"><i class="fa fa-wifi" onclick="getOwnIP();"></i></button>
+                    </div>
+                </div>
+                <div class="row align-middle m-t-sm">
+                    <div class="col-sm-12">
+                        <buton class="m-t-sm m-b-sm btn btn-primary btn-block btn-xs" onclick="connectDevice()">Mount Device</button>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>

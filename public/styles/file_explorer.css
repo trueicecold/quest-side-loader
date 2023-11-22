@@ -1,0 +1,64 @@
+body.file_explorer {
+    & .table_scroll {
+        overflow-y:auto;
+        max-height:calc(100vh - 150px);
+    }
+
+    & .file_table {
+        max-width: 800px;
+        height: 100%;
+        table-layout: fixed;
+
+        & thead tr, thead th {
+            top: 0px;
+            position: sticky;
+            background-color: #fff;
+        }
+        
+        & tbody tr {
+            background-color: #ddd;
+        }
+
+        & tr th:first-child {
+            width:20px;
+        }
+
+        & tr td:first-child {
+            text-align:center;
+        }
+
+        & tr th:nth-child(2) {
+            width: 250px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;;
+        }
+
+        & tr th:nth-child(3) {
+            width: 90px;
+        }
+
+        & tr th:nth-child(4) {
+            width: 90px;
+        }
+
+        & tr td:nth-child(2) {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;;
+        }
+    }
+
+    & #obb_detected, #install_detected {
+        display:none;
+    }
+
+    & .click_enabled {
+        cursor: pointer;
+    }
+
+    & #install_package_progress .modal-body div > div {
+        width:170px;
+        display:inline-block;
+    }
+}

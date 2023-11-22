@@ -1,0 +1,45 @@
+{
+  "name": "qsl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "package": "pkg package.json -o dist/qsl.exe"
+  },
+  "author": "trueicecold",
+  "license": "ISC",
+  "dependencies": {
+    "@devicefarmer/adbkit": "^3.2.5",
+    "@devicefarmer/adbkit-apkreader": "^3.2.4",
+    "bluebird": "^3.7.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "fix-path": "^4.0.0",
+    "fs-extra": "^11.1.1",
+    "https-proxy-agent": "^7.0.2",
+    "module-alias": "^2.2.3",
+    "moment": "^2.29.4",
+    "node-disk-info": "^1.3.0",
+    "unzipper": "^0.10.14"
+  },
+  "_moduleAliases": {
+    "@libs": "libs",
+    "@managers": "managers",
+    "@public": "public"
+  },
+  "bin": "index.js",
+  "pkg": {
+    "scripts": [
+      "libs/**/*",
+      "managers/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "assets": [
+      "public/**/*"
+    ]
+  }
+}

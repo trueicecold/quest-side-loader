@@ -1,0 +1,65 @@
+<script type="text/template" id="file_entry_template">
+    <tr data-path="$$NAME$$" class="click_enabled">
+        <td class="file_entry_icon"><i class="fa $$ICON_CLASS$$"></i></td>
+        <td class="align-middle">$$NAME$$</td>
+        <td class="align-middle">$$SIZE$$</td>
+        <td class="align-middle">$$LAST_MODIFIED$$</td>
+    </tr>
+</script>
+
+<h2>File Explorer</h2>
+<p>
+<h4>Select Drive:</h4>
+<select id="drive_selector" class="form-control" onchange="changeDrive()">
+</select>
+
+<div class="table_scroll m-t-sm">
+    <table class="table table-bordered file_table">
+        <thead>
+            <tr>
+                <th class="file_entry_icon"></th>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Last Modified</th>
+            </tr>
+        </thead>
+        <tbody id="files_container">
+        </tbody>
+    </table>
+</div>  
+
+<div class="modal fade" id="install_package_modal" tabindex="-1" role="dialog"
+    aria-labelledby="install_package_modal_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body">Continue with installing <span class="install_package_name"></span>?
+                <p>
+                <div id="obb_detected" class="text-success">OBB folder detected</div>
+                <div id="install_detected" class="text-success">install.txt detected</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="installPackage()">Install</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="install_package_progress" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog"
+    aria-labelledby="install_package_modal_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">Installing <span class="install_package_name"></span>
+                <div><div>Copying APK</div> <span class="badge" id="progress_copying_apk">Pending</span></div>
+                <div><div>Uninstalling APK</div> <span class="badge" id="progress_uninstalling_apk">Pending</span></div>
+                <div><div>Installing APK</div> <span class="badge" id="progress_installing_apk">Pending</span></div>
+                <div><div>Removing OBB</div> <span class="badge" id="progress_removing_obb">Pending</span></div>
+                <div><div>Copying OBB</div> <span class="badge" id="progress_copying_obb">Pending</span></div>
+                <div hidden><div>All Done</div> <span class="badge" id="progress_done">Pending</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="close_button" class="btn btn-secondary" data-dismiss="modal" disabled>Close</button>
+            </div>
+        </div>
+    </div>
+</div>

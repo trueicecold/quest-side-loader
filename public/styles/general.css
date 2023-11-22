@@ -1,0 +1,61 @@
+.optWrapper > ul > li > label {
+    margin-bottom:0;
+}
+
+.device_info {
+    padding-left: 20px;
+    color:#bbbbbb;
+    margin-right:20px;
+}
+
+.progress {
+    position:relative;
+}
+
+#storage_progress_container {
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    text-align: center;
+    color: #444;
+}
+
+#battery_charging {
+    display:none;
+}
+
+.device_selector_container{
+    padding-left:10px;
+    padding-right:10px;
+}
+
+#ip_address {
+    height:26px;
+    padding-right:0;
+}
+
+#not_connected {
+    position:relative;
+
+    & .mask {
+        display:none;
+        z-index:100;
+        position:absolute;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        background-color:rgba(0,0,0,0.5);
+
+        & > .content {
+            width:100%;
+            position: absolute;
+            color: #fff;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    }
+}

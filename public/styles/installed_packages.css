@@ -1,0 +1,13 @@
+#installed_packages_container .image_container {
+    width: 150px;
+    height: 80px;
+    background-color: #000;
+    border: 1px solid #000;
+    text-align:center;
+}
+
+#installed_packages_container img {
+    max-width:150px;
+    max-height:78px;
+    margin:0 auto;
+}
