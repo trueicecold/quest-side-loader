@@ -78,9 +78,17 @@ const getFileList = (dir_path) => {
             let fileDetails = fs.lstatSync(path.resolve(dir_path, file));
             // check if the file is directory 
             if (fileDetails.isDirectory()) {
-                files_json.directories.push(file);
+                files_json.directories.push({
+                    name: file,
+                    last_modified: fileDetails.mtime
+                });
             } else {
-                files_json.files.push(file);
+                files_json.has_install = files_json.has_install || file.toLowerCase() == "install.txt";
+                files_json.files.push({
+                    name: file,
+                    size: fileDetails.size,
+                    last_modified: fileDetails.mtime
+                });
             }
         }
         catch(e) {

@@ -7,7 +7,6 @@ body.file_explorer {
     & .file_table {
         max-width: 800px;
         height: 100%;
-        table-layout: fixed;
 
         & thead tr, thead th {
             top: 0px;
@@ -19,16 +18,13 @@ body.file_explorer {
             background-color: #ddd;
         }
 
-        & tr th:first-child {
-            width:20px;
-        }
-
-        & tr td:first-child {
-            text-align:center;
+        & td {
+            padding:4px;
+            white-space: nowrap;
         }
 
         & tr th:nth-child(2) {
-            width: 250px;
+            width: 100%;
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;;
@@ -47,6 +43,24 @@ body.file_explorer {
             overflow: hidden;
             white-space: nowrap;;
         }
+
+        & .apk {
+            font-size:12px;
+            font-weight:bold;
+            color:var(--orange);
+        }
+
+        & .obb {
+            font-size: 12px;
+            font-weight: bold;
+            color:var(--blue);
+        }
+
+        & .install {
+            font-size: 12px;
+            font-weight: bold;
+            color:var(--green);
+        }
     }
 
     & #obb_detected, #install_detected {
@@ -57,7 +71,11 @@ body.file_explorer {
         cursor: pointer;
     }
 
-    & #install_package_progress .modal-body div > div {
+    & .disabled {
+        color: var(--gray);
+    }    
+
+    & #install_package_progress .modal-body #regular_txt_progress > div > div, #install_package_progress .modal-body #install_txt_progress>div>div {
         width:170px;
         display:inline-block;
     }

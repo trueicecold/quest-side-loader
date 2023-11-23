@@ -88,3 +88,20 @@ function humanFileSize(size) {
     var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
     return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
 }
+
+const formatDate = (fullDateString) => {
+    const date = new Date(fullDateString);
+
+    const day = addZero(date.getDate());
+    const month = addZero(date.getMonth() + 1);
+    const year = date.getFullYear();
+    const hour = addZero(date.getHours());
+    const minute = addZero(date.getMinutes());
+
+    const formattedDate = `${day}/${month}/${year} ${hour}:${minute}`;
+    return formattedDate;
+}
+
+const addZero = (number) => {
+    return number < 10 ? "0" + number : number;
+}

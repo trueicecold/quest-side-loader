@@ -1,5 +1,6 @@
 const { Adb, DeviceClient } = require('@devicefarmer/adbkit');
 const Bluebird = require('bluebird');
+const execSync = require('child_process').execSync;
 
 let adbClient;
 
@@ -175,10 +176,10 @@ const pushFile = async (local_path, remote_path) => {
 let transferStart;
 let installDetails = {
 };
-const installPackage = async (package_path, has_obb = false) => {
+const installPackage = async (package_path, has_obb = false, has_install = false) => {
     has_obb = has_obb == "true" ? true : false;
     installDetails = {
-        state: "starting"
+        state: "copying_apk"
     }
     
     if (global.adbDevice) {
@@ -186,52 +187,75 @@ const installPackage = async (package_path, has_obb = false) => {
         
         return new Promise(async (resolve, reject) => {
             try {
-                //copy apk to temp folder
-                installDetails.state = "copying_apk";
-                await pushFile(package_path, tmp_apk);
-                
-                installDetails.state = "uninstalling_apk";
-                await global.adbDevice.uninstall(package_path.split("/").pop().replace(".apk", ""));
+                if (!has_install) { // Regular install
+                    //copy apk to temp folder
+                    installDetails.state = "copying_apk";
+                    await pushFile(package_path, tmp_apk);
+                    
+                    installDetails.state = "uninstalling_apk";
+                    await global.adbDevice.uninstall(package_path.split("/").pop().replace(".apk", ""));
 
-                installDetails.state = "installing_apk";
-                await global.adbDevice.installRemote(tmp_apk);
+                    installDetails.state = "installing_apk";
+                    await global.adbDevice.installRemote(tmp_apk);
 
-                if (has_obb) {
-                    installDetails.state = "removing_obb";
-                    await shell("rm -rf /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
+                    if (has_obb) {
+                        installDetails.state = "removing_obb";
+                        await shell("rm -rf /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
 
-                    await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
-                    const recursiveFolders = await fileManager.getRecursiveFolders(package_path.substr(0, package_path.lastIndexOf(".")));
-                    const fileCount = recursiveFolders.filter(item => !item.directory).length;
-                   
-                    //recursive create folders before copying files, due to permissions error on quest 3
-                    recursiveFolders.forEach(async (item) => {
-                        if (item.directory) {
-                            await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
+                        await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
+                        const recursiveFolders = await fileManager.getRecursiveFolders(package_path.substr(0, package_path.lastIndexOf(".")));
+                        const fileCount = recursiveFolders.filter(item => !item.directory).length;
+                    
+                        //recursive create folders before copying files, due to permissions error on quest 3
+                        recursiveFolders.forEach(async (item) => {
+                            if (item.directory) {
+                                await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
+                            }
+                        });
+                        
+                        await util.delay(2000);
+
+                        installDetails.state = "copying_obb";
+                        installDetails.fileTotal = fileCount;
+                        installDetails.fileIndex = 1;
+
+                        Bluebird.each(recursiveFolders, async (item) => {
+                            if (!item.directory) {
+                                await pushFile(package_path.substr(0, package_path.lastIndexOf(".")) + item.path, "/sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
+                                installDetails.fileIndex++;
+                                if (installDetails.fileIndex == fileCount) {
+                                    installDetails.state = "done";
+                                    resolve({
+                                        status: 1
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        installDetails.state = "done";
+                        resolve({
+                            status: 1
+                        });
+                    }
+                }
+                else { // install.txt run
+                    installDetails.state = "running_install";
+                    let install_lines = fs.readFileSync(package_path, 'utf8');
+                    install_lines = install_lines.split("\n");
+                    let command_response;
+                    install_lines.forEach(async (line) => {
+                        //line = path.join(__dirname, "..", "qsl-tools", line);
+                        try {
+                            console.log(global.qslToolsHome + path.sep + line);
+                            command_response = await execSync(global.qslToolsHome + path.sep + line, { cwd: package_path.substr(0, package_path.lastIndexOf("/")) });
+                            console.log(command_response);
+                        }
+                        catch(e) {
+                            console.log(e.message);
                         }
                     });
                     
-                    await util.delay(2000);
-
-                    installDetails.state = "copying_obb";
-                    installDetails.fileTotal = fileCount;
-                    installDetails.fileIndex = 1;
-
-                    Bluebird.each(recursiveFolders, async (item) => {
-                        if (!item.directory) {
-                            await pushFile(package_path.substr(0, package_path.lastIndexOf(".")) + item.path, "/sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
-                            installDetails.fileIndex++;
-                            if (installDetails.fileIndex == fileCount) {
-                                installDetails.state = "done";
-                                resolve({
-                                    status: 1
-                                });
-                            }
-                        }
-                    });
-                }
-                else {
-                    installDetails.state = "done";
                     resolve({
                         status: 1
                     });
@@ -240,6 +264,7 @@ const installPackage = async (package_path, has_obb = false) => {
             catch (e) {
                 resolve({
                     status: 0,
+                    state: installDetails.state,
                     error: "Error installing package: " + e.message
                 });
             }
@@ -251,6 +276,7 @@ const installPackage = async (package_path, has_obb = false) => {
     else {
         return {
             status: 0,
+            state: installDetails.state,
             error: "No device connected"
         };
     }

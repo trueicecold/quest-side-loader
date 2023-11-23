@@ -31,7 +31,7 @@ const getDeviceData = () => {
 }
 
 const installPackage = async (req) => {
-    return await adb.installPackage(req.body.path, req.body.obb);
+    return await adb.installPackage(req.body.path, req.body.obb, req.body.install);
 }
 
 const getInstallProgress = async () => {

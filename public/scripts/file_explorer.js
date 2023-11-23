@@ -3,17 +3,19 @@ let selectedAPK = {
 };
 
 const changeDrive = () => {
-    getFileList($("#drive_selector").val());
+    getFileList("d:/torrent downloads/quest 2/Another Fisherman's Tale v51+1.078 -VRP"/*$("#drive_selector").val()*/);
 }
 
 const getFileList = async (dir_path = "d:/torrent downloads/quest 2") => {
     $.post("/api/file_list", { path: dir_path }, (data) => {
         $("#files_container").empty();
         
+        var apks = data.files.filter(file => file.name.endsWith(".apk"));
+
         if (dir_path.indexOf("/") > -1) {
             var directory = $($("#file_entry_template").html()
                 .replace(/\$\$NAME\$\$/ig, "..")
-                .replace("$$ICON_CLASS$$", "fa-folder")
+                .replace("$$ICON$$", "<i class='fa fa-folder'></i>")
                 .replace("$$SIZE$$", "")
                 .replace("$$LAST_MODIFIED$$", ""));
             
@@ -26,10 +28,10 @@ const getFileList = async (dir_path = "d:/torrent downloads/quest 2") => {
 
         for (var i=0;i<data.directories.length;i++) {
             var directory = $($("#file_entry_template").html()
-                .replace(/\$\$NAME\$\$/ig, data.directories[i])
-                .replace("$$ICON_CLASS$$", "fa-folder")
+                .replace(/\$\$NAME\$\$/ig, data.directories[i].name)
+                .replace("$$ICON$$", apks.filter(apk => apk.name.replace(".apk", "") == data.directories[i].name).length > 0 ? "<li class='fa fa-folder'></li>&nbsp;<span class='obb'>OBB</span>" : "<i class='fa fa-folder'></i>")
                 .replace("$$SIZE$$", "")
-                .replace("$$LAST_MODIFIED$$", ""));
+                .replace("$$LAST_MODIFIED$$", formatDate(data.directories[i].last_modified)));
             
             directory.on("click", function() {
                 getFileList(dir_path + "/" + $(this).data("path"));
@@ -39,30 +41,37 @@ const getFileList = async (dir_path = "d:/torrent downloads/quest 2") => {
         }
 
         for (var i = 0; i < data.files.length; i++) {
-            if (data.files[i].endsWith(".apk")) {
+            if (data.files[i].name.endsWith(".apk") || data.files[i].name.toLowerCase() == "install.txt") {
                 var file = $($("#file_entry_template").html()
-                    .replace(/\$\$NAME\$\$/ig, data.files[i])
-                    .replace("$$ICON_CLASS$$", "fa-file")
-                    .replace("$$SIZE$$", "")
-                    .replace("$$LAST_MODIFIED$$", ""));
-                file.on("click", function () {
-                    selectedAPK.path = dir_path + "/" + $(this).data("path");
-                    selectedAPK.obb = false;
-                    
-                    $("#obb_detected").hide();
-                    
-                    if (data.directories.indexOf($(this).data("path").replace(".apk", "")) > -1) {
-                        selectedAPK.obb = true;
-                        $("#obb_detected").show();
-                    }
+                    .replace(/\$\$NAME\$\$/ig, data.files[i].name)
+                    .replace("$$ICON$$", data.files[i].name.toLowerCase() == "install.txt" ? "<li class='fa fa-file'></li>&nbsp;<span class='install'>INSTALL</span>" : "<li class='fa fa-file'></li>&nbsp;<span class='apk'>APK</span>")
+                    .replace("$$SIZE$$", humanFileSize(data.files[i].size))
+                    .replace("$$LAST_MODIFIED$$", formatDate(data.files[i].last_modified)));
 
-                    if (data.files.indexOf("install.txt") > -1) {
-                        $("#install_detected").show();
-                    }
+                if (!data.has_install || data.files[i].name.toLowerCase() == "install.txt") {
+                    file.on("click", function () {
+                        selectedAPK.path = dir_path + "/" + $(this).data("path");
+                        selectedAPK.obb = false;
+                        
+                        $("#obb_detected").hide();
+                        
+                        if (data.directories.filter(directory => directory.name == $(this).data("path").replace(".apk", "")).length > 0) {
+                            selectedAPK.obb = true;
+                            $("#obb_detected").show();
+                        }
 
-                    $(".install_package_name").html($(this).data("path"));
-                    $("#install_package_modal").modal("show");
-                });
+                        if (data.files.filter(file => file.name.toLowerCase() == "install.txt").length > 0) {
+                            selectedAPK.install = true;
+                            $("#install_detected").show();
+                        }
+
+                        $(".install_package_name").html($(this).data("path"));
+                        $("#install_package_modal").modal("show");
+                    });
+                }
+                else {
+                    file.addClass("disabled");
+                }
                 $("#files_container").append(file);
             }
         }
@@ -72,45 +81,60 @@ const getFileList = async (dir_path = "d:/torrent downloads/quest 2") => {
 let installProgressInterval;
 const getInstallProgress = () => {
     $.get("/api/install_progress", (data) => {
-        $("#install_package_progress .modal-body .badge").each((index, item) => {
-            if (index < $("#progress_" + data.state).index(".modal-body .badge")) {
-                $(item).removeClass("badge-warning").addClass("badge-primary");
-                $(item).html("Done");
+        if (!installFailed) {
+            $("#install_package_progress .modal-body .badge").each((index, item) => {
+                if (index < $("#progress_" + data.state).index(".modal-body .badge")) {
+                    $(item).removeClass("badge-warning").addClass("badge-primary");
+                    $(item).html("Done");
+                }
+            });
+
+            $("#progress_" + data.state).addClass("badge-warning");
+            $("#progress_" + data.state).html("Processing");
+            
+            if (data.state == "copying_apk") {
+                $("#apk_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
             }
-        });
+            else {
+                $("#apk_progress").html("");
+            }
 
-        $("#progress_" + data.state).addClass("badge-warning");
-        $("#progress_" + data.state).html("Processing");
-        
-        if (data.state == "copying_apk") {
-            $("#apk_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
-        }
-        else {
-            $("#apk_progress").html("");
-        }
-
-        if (data.state == "copying_obb") {
-            $("#progress_" + data.state).html(data.fileIndex + " / " + data.fileTotal);
-            $("#obb_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
-        }
-        else {
-            $("#obb_progress").html("");
+            if (data.state == "copying_obb") {
+                $("#progress_" + data.state).html(data.fileIndex + " / " + data.fileTotal);
+                $("#obb_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
+            }
+            else {
+                $("#obb_progress").html("");
+            }
         }
     });
 }
 
+let installFailed = false;
 const installPackage = () => {
-    $("#install_package_progress .modal-body .badge").removeClass("badge-warning").removeClass("badge-primary");
+    installFailed = false;
+    if (selectedAPK.install) {
+        $("#install_txt_progress").removeAttr("hidden");
+        $("#regular_txt_progress").hide();
+    }
+    else {
+        $("#install_txt_progress").attr("hidden", "");
+        $("#regular_txt_progress").show();
+    }
+    $("#install_package_progress .modal-body .badge").removeClass().addClass("badge");
     $("#install_package_modal").modal("hide");
     $("#install_package_progress").modal("show");
     $.post("/api/install_package", selectedAPK, (data) => {
         if (data.status == 1) {
             clearInterval(installProgressInterval);
-            $("#install_package_progress .modal-body .badge").removeClass("badge-warning").addClass("badge-primary");
+            $("#install_package_progress .modal-body .badge").removeClass().addClass("badge");
             $("#install_package_progress .modal-body .badge").html("Done");
         }
         else {
-            alert(data.error);
+            installFailed = true;
+            $("#progress_running_install").removeClass("badge-warning").addClass("badge-danger").html("Failed");
+            $("#progress_" + data.state).removeClass("badge-warning").addClass("badge-danger").html("Failed");
+            $("#install_error").html(data.error);
         }
     }).always(() => {
         $("#install_package_progress #close_button").removeAttr("disabled");

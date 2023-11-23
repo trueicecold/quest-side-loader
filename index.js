@@ -1,4 +1,4 @@
-require("./libs/global");
+require("./global");
 
 const fileManager = require("./managers/file");
 const adbManager = require("./managers/adb");

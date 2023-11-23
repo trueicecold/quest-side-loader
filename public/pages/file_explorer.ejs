@@ -1,6 +1,6 @@
 <script type="text/template" id="file_entry_template">
     <tr data-path="$$NAME$$" class="click_enabled">
-        <td class="file_entry_icon"><i class="fa $$ICON_CLASS$$"></i></td>
+        <td class="file_entry_icon">$$ICON$$</td>
         <td class="align-middle">$$NAME$$</td>
         <td class="align-middle">$$SIZE$$</td>
         <td class="align-middle">$$LAST_MODIFIED$$</td>
@@ -50,12 +50,20 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-body">Installing <span class="install_package_name"></span>
-                <div><div>Copying APK</div> <span class="badge" id="progress_copying_apk">Pending</span><span class="p-w-sm" id="apk_progress"></span></div>
-                <div><div>Uninstalling APK</div> <span class="badge" id="progress_uninstalling_apk">Pending</span></div>
-                <div><div>Installing APK</div> <span class="badge" id="progress_installing_apk">Pending</span></div>
-                <div><div>Removing OBB</div> <span class="badge" id="progress_removing_obb">Pending</span></div>
-                <div><div>Copying OBB</div> <span class="badge" id="progress_copying_obb">Pending</span><span class="p-w-sm" id="obb_progress"></span></span></div>
+                <div id="regular_txt_progress" class="m-t-sm">
+                    <div><div>Copying APK</div> <span class="badge" id="progress_copying_apk">Pending</span><span class="p-w-sm" id="apk_progress"></span></div>
+                    <div><div>Uninstalling APK</div> <span class="badge" id="progress_uninstalling_apk">Pending</span></div>
+                    <div><div>Installing APK</div> <span class="badge" id="progress_installing_apk">Pending</span></div>
+                    <div><div>Removing OBB</div> <span class="badge" id="progress_removing_obb">Pending</span></div>
+                    <div><div>Copying OBB</div> <span class="badge" id="progress_copying_obb">Pending</span><span class="p-w-sm" id="obb_progress"></span></span></div>
+                </div>
+                <div id="install_txt_progress" class="m-t-sm" hidden>
+                    <div><div>Running install.txt</div> <span class="badge" id="progress_running_install">Pending</span></div>
+                </div>
                 <div hidden><div>All Done</div> <span class="badge" id="progress_done">Pending</span></div>
+                <p>
+                    <div id="install_error" class="font-weight-bold text-danger"></div>
+                </p>
             </div>
             <div class="modal-footer">
                 <button type="button" id="close_button" class="btn btn-secondary" data-dismiss="modal" disabled>Close</button>
