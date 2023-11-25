@@ -10,7 +10,7 @@ const path = require("path");
 const fileManager = require("../managers/file");
 const util = require("../libs/util");
 
-const tmp_apk = "/data/local/tmp/install.apk";
+const tmp_apk_path = "/data/local/tmp/install.apk";
 
 const shell = async (command, readResponse = true) => {
     try {
@@ -54,7 +54,6 @@ const searchDevices = async () => {
     const supportedDevices = await Bluebird.filter(devices, async (device) => {
         if (device.type == "device") {
             const features = await adbClient.getDevice(device.id).getFeatures();
-            return true;
             return features['oculus.hardware.standalone_vr'] != null;
         }
     });
@@ -178,8 +177,9 @@ let installDetails = {
 };
 const installPackage = async (package_path, has_obb = false, has_install = false) => {
     let packageFolder = package_path.substr(0, package_path.lastIndexOf("/"));
-    let packageName =   package_path.split("/").pop();
+    let packageName = package_path.split("/").pop().replace(".apk", "");
     has_obb = has_obb == "true" ? true : false;
+    has_install = has_install == "true" ? true : false;
     installDetails = {
         state: "copying_apk"
     }
@@ -192,46 +192,41 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                 if (!has_install) { // Regular install
                     //copy apk to temp folder
                     installDetails.state = "copying_apk";
-                    await pushFile(package_path, tmp_apk);
+                    await pushFile(package_path, tmp_apk_path);
                     
                     installDetails.state = "uninstalling_apk";
-                    await global.adbDevice.uninstall(package_path.split("/").pop().replace(".apk", ""));
+                    await global.adbDevice.uninstall(packageName);
 
                     installDetails.state = "installing_apk";
-                    await global.adbDevice.installRemote(tmp_apk);
+                    await global.adbDevice.installRemote(tmp_apk_path);
 
                     if (has_obb) {
                         installDetails.state = "removing_obb";
-                        await shell("rm -rf /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
-
-                        await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", ""));
+                        await removeOBBFolder(packageName);
+                        await createOBBFolder(packageName);
+                        
                         const recursiveFolders = await fileManager.getRecursiveFolders(package_path.substr(0, package_path.lastIndexOf(".")));
-                        const fileCount = recursiveFolders.filter(item => !item.directory).length;
+                        const files = recursiveFolders.filter(item => !item.directory);
+                        const directories = recursiveFolders.filter(item => item.directory);
                     
-                        //recursive create folders before copying files, due to permissions error on quest 3
-                        recursiveFolders.forEach(async (item) => {
-                            if (item.directory) {
-                                await shell("mkdir /sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
-                            }
-                        });
+                        await createOBBFolders(directories, packageName);
                         
                         await util.delay(2000);
 
                         installDetails.state = "copying_obb";
-                        installDetails.fileTotal = fileCount;
+                        installDetails.fileTotal = files.length;
                         installDetails.fileIndex = 1;
 
-                        Bluebird.each(recursiveFolders, async (item) => {
-                            if (!item.directory) {
-                                await pushFile(package_path.substr(0, package_path.lastIndexOf(".")) + item.path, "/sdcard/Android/obb/" + package_path.split("/").pop().replace(".apk", "") + item.path);
-                                installDetails.fileIndex++;
-                                if (installDetails.fileIndex == fileCount) {
-                                    installDetails.state = "done";
-                                    resolve({
-                                        status: 1
-                                    });
-                                }
-                            }
+                        //await copyOBBFiles(files, packageName);
+
+                        for (let file = 0; file < files.length; file++) {
+                            await pushFile(package_path.substr(0, package_path.lastIndexOf(".")) + files[file].path, "/sdcard/Android/obb/" + packageName + files[file].path);
+                            installDetails.fileIndex++;
+                        };
+
+                        installDetails.state = "done";
+                        resolve({
+                            status: 1
                         });
                     }
                     else {
@@ -245,8 +240,8 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                     installDetails.state = "running_install";
                     let install_lines = fs.readFileSync(package_path, 'utf8');
                     install_lines = install_lines.split("\n");
-                    install_lines.forEach(async (line, index) => {
-                        line = line.trim();
+                    for (let line_index = 0; line_index < install_lines.length; line_index++) {
+                        line = install_lines[line_index].trim();
                         try {
                             //Detect folder push in install.txt and create folders (Quest 3 fix)
                             if (line.toLowerCase().indexOf("adb push") == 0) {
@@ -255,34 +250,26 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                                 if (folderToPushStat.isDirectory()) {
                                     await shell("mkdir " + line.split(/\s/g)[3] + "/" + folderToPush);
                                     let recursiveFolders = await fileManager.getRecursiveFolders(path.join(packageFolder, folderToPush));
-                                    recursiveFolders.forEach(async (item) => {
-                                        if (item.directory) {
-                                            await shell("mkdir " + line.split(/\s/g)[3] + "/" + folderToPush + item.path);
-                                        }
-                                    });
+                                    const files = recursiveFolders.filter(item => !item.directory);
+                                    const directories = recursiveFolders.filter(item => item.directory);
+
+                                    for (let directory = 0; directory < directories.length; directory++) {
+                                        await shell("mkdir " + line.split(/\s/g)[3] + "/" + folderToPush + directories[directory].path);
+                                    }
                                 }
                             }
                             installDetails.command = line;
-                            installDetails.fileIndex = index + 1;
-                            installDetails.fileTotal = install_lines.length;
                             let command_response;
-                            switch (true) {
-                                case line.toLowerCase().indexOf("adb push") == 0:
-                            }
+
                             command_response = await execSync(global.qslToolsHome + path.sep + line, { cwd: packageFolder });
-                            installDetails.fileIndex++;
-                            if (installDetails.fileIndex == install_lines.length) {
-                                installDetails.state = "done";
-                                resolve({
-                                    status: 1
-                                });
-                            }
                         }
-                        catch(e) {
-                            resolve({
-                                status: 0
-                            });                            
-                        }                        
+                        catch (e) {
+                        }
+                    }
+
+                    installDetails.state = "done";
+                    resolve({
+                        status: 1
                     });
                 }
             }
@@ -294,7 +281,7 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                 });
             }
             finally {
-                shell("rm " + tmp_apk);
+                shell("rm " + tmp_apk_path);
             }
         });
     }
@@ -307,16 +294,52 @@ const installPackage = async (package_path, has_obb = false, has_install = false
     }
 }
 
-const pushFolder = async (local_path, remote_path) => {
+const removeOBBFolder = async (packageName) => {
+    await shell("rm -rf /sdcard/Android/obb/" + packageName);
+}
+
+const createOBBFolder = async (packageName) => {
+    await shell("mkdir /sdcard/Android/obb/" + packageName);
+}
+
+const createOBBFolders = async (directories, packageName) => {
+    //recursive create folders before copying files, due to permissions error on quest 3
+    directories.forEach(async (item) => {
+        if (item.directory) {
+            await shell("mkdir /sdcard/Android/obb/" + packageName + item.path);
+        }
+    });
 }
 
 const onPushProgress = (transferred) => {
-
     installDetails.transferred = transferred;
 }
 
 const getInstallProgress = async () => {
     return installDetails;
+}
+
+const uninstallPackage = async (packageName) => {
+    if (global.adbDevice) {
+        try {
+            await global.adbDevice.uninstall(packageName);
+            return {
+                status: 1
+            }
+        }
+        catch (e) {
+            return {
+                status: 0,
+                error: e.message
+            }
+        }
+    }
+    else {
+        return {
+            status: 0,
+            error: "No device connected"
+        }
+    }
 }
 
 const getBatteryInfo = async () => {
@@ -435,5 +458,6 @@ module.exports = {
     connectDeviceBySerial,
     disconnectDevice,
     installPackage,
-    getInstallProgress
+    getInstallProgress,
+    uninstallPackage
 }

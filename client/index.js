@@ -15,16 +15,25 @@ const dependencies = [
     "https://raw.githubusercontent.com/awake558/adb-win/master/SDK_Platform-Tools_for_Windows/platform-tools_r34.0.5-windows/AdbWinUsbApi.dll"
 ];
 
+const meta_url = "http://159.65.219.115/meta.7z";
+const meta_hash = "http://159.65.219.115/meta.hash";
+
 const init = async () => {
     const dependenciesResponse = await fileManager.checkDependencies(dependencies);
-    if (dependenciesResponse) {
-        webServerManager.init();
-        adbManager.init();
-    }
-    else {
+    const metaResponse = await fileManager.checkMeta(meta_url, meta_hash);
+    
+    if (!dependenciesResponse) {
         console.log("Error downloading dependencies");
         process.exit();
     }
+
+    if (!metaResponse) {
+        console.log("Error downloading meta file");
+        process.exit();
+    }
+
+    webServerManager.init();
+    adbManager.init();
 }
 
 init();

@@ -65,6 +65,10 @@ const getFileList = async (dir_path = "d:/torrent downloads/quest 2") => {
                             selectedAPK.install = true;
                             $("#install_detected").show();
                         }
+                        else {
+                            selectedAPK.install = false;
+                            $("#install_detected").hide();
+                        }
 
                         $(".install_package_name").html($(this).data("path"));
                         $("#install_package_modal").modal("show");
@@ -94,7 +98,7 @@ const getInstallProgress = () => {
             $("#progress_" + data.state).html("Processing");
             
             if (data.state == "copying_apk") {
-                $("#apk_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
+                $("#apk_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total)/* + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)"*/);
             }
             else {
                 $("#apk_progress").html("");
@@ -108,7 +112,7 @@ const getInstallProgress = () => {
                 $("#running_install_progress_caption");
             }
             if (data.state == "copying_obb") {
-                $("#" + data.state + "_progress_caption").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
+                $("#" + data.state + "_progress_caption").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total)/* + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)"*/);
             }
         }
     });

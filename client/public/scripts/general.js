@@ -75,9 +75,9 @@ const getDeviceData = () => {
             $("#free_memory").html(data.memory ? humanFileSize(data.memory.available) : "");
             $("#storage_progress").css("width", data.storage ? data.storage.percent : 0);
             $("#storage_progress_container").html((data.storage) ? data.storage.used + "/" + data.storage.size + " (" + data.storage.percent + ")" : "");
-            $("#battery_level").html(data.battery.level ? data.battery.level + "%" : "");
+            $("#battery_level").html(data.battery ? data.battery.level + "%" : "");
 
-            if (data.battery.charging) {
+            if (data.battery?.charging) {
                 $("#battery_charging").show();
             }
         }

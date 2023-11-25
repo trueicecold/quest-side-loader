@@ -1,4 +1,5 @@
 const getInstalledPackages = async () => {
+    $("#installed_packages_container").empty();
     if (DEVICE_DATA.installed_packages && Object.keys(DEVICE_DATA.installed_packages).length > 0) {
         for (var package in DEVICE_DATA.installed_packages) {
             var installed_package = DEVICE_DATA.installed_packages[package];
@@ -6,7 +7,7 @@ const getInstalledPackages = async () => {
             var package = $("#installed_package_template").html()
                 .replace("$$ICON$$", installed_package.has_image ? "remote_assets/iconpack_quest/" + package  + ".jpg" : "")
                 .replace("$$NAME$$", DEVICE_DATA.package_icons[package] ? DEVICE_DATA.package_icons[package].name : package)
-                .replace("$$PACKAGE$$", package)
+                .replace(/\$\$PACKAGE\$\$/g, package)
                 .replace("$$VERSION$$", installed_package.version)
 
             $("#installed_packages_container").append(package);
@@ -15,6 +16,31 @@ const getInstalledPackages = async () => {
     else {
         setTimeout(getInstalledPackages, 1000);
     }
+}
+
+let uninstallRow = null;
+let uninstallPackageName = null;
+const showUninstallModal = async (row) => {
+    uninstallRow = $(row).data("package");
+    uninstallPackageName = $(row).data("package");
+    $("#uninstall_package_modal").modal("show");
+    $(".uninstall_package_name").html(uninstallPackageName);
+}
+
+const uninstallPackage = async () => {
+    $.post("/api/uninstall_package", { package: uninstallPackageName }, (data) => {
+        if (data) {
+            if (data.status) {
+                uninstallRow.remove();
+            }
+            else {
+                alert("Failed to uninstall package: " + data.error);
+            }
+        }
+        else {
+            alert("Failed to uninstall package");
+        }
+    });
 }
 
 getInstalledPackages();

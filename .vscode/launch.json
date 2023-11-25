@@ -8,10 +8,10 @@
             "name": "Launch Backend (Watch)",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "program": "${workspaceFolder}/index.js",
+            "program": "index.js",
             "request": "launch",
             "restart": true,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/client",
             "runtimeExecutable": "nodemon",
             "type": "node"
         },
@@ -20,7 +20,7 @@
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "request": "launch",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/client",
             "runtimeExecutable": "npm",
             "runtimeArgs": [
                 "run-script",

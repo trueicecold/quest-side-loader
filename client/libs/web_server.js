@@ -60,6 +60,10 @@ app.get("/api/install_progress", async (req, res) => {
     res.send(await adbManager.getInstallProgress());
 });
 
+app.post("/api/uninstall_package", async (req, res) => {
+    res.send(await adbManager.uninstallPackage(req.body.package));
+});
+
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.use("/public", express.static('public', {

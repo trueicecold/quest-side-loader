@@ -3,6 +3,11 @@ const path = require("path");
 const Bluebird = require('bluebird');
 const nodeDiskInfo = require("node-disk-info");
 const https = require("https");
+const http = require("http");
+var crypto = require('crypto');
+var AdmZip = require("adm-zip");
+
+let metaZipFile;
 
 const checkDependencies = async (dependencies) => {
     let dependenciesExist = true;
@@ -28,11 +33,69 @@ const checkDependencies = async (dependencies) => {
     return dependenciesExist;
 }
 
+const checkMeta = async (meta_url, meta_hash) => {
+    let metaDownload = true;
+    if (!fs.existsSync("./qsl-data")) {
+        fs.mkdirSync("./qsl-data");
+    }
+    if (!fs.existsSync("./qsl-data/meta.7z")) {
+        console.log("Missing meta file, downloading...");
+        metaDownload = true;
+    }
+    else {
+        if (fs.existsSync("./qsl-data/meta.hash_local")) {
+            const meta_local = fs.readFileSync("./qsl-data/meta.hash_local", "utf-8");
+            await downloadFile(meta_hash, "./qsl-data/meta.hash");
+            const meta_remote = fs.readFileSync("./qsl-data/meta.hash", "utf-8");
+            if (meta_local == meta_remote) {
+                metaDownload = false;
+                //console.log(metaZipFile.getData())
+            }
+        }
+        else {
+            console.log("Missing local hash, Downloading...");
+            metaDownload = true;
+        }
+    }
+    if (metaDownload) {
+        await downloadFile(meta_url, "./qsl-data/meta.7z");
+        writeLocalMetaHash();
+    }
+    return true;
+}
+
+const writeLocalMetaHash = () => {
+    //Creating a readstream to read the file
+    var myReadStream = fs.createReadStream('./qsl-data/meta.7z');
+    var rContents = '' // to hold the read contents;
+    myReadStream.on('data', function (chunk) {
+        rContents += chunk;
+    });
+    myReadStream.on('error', function (err) {
+        console.log(err);
+    });
+    myReadStream.on('end', function () {
+        //Calling the getHash() function to get the hash
+        var content = getHash(rContents);
+        fs.writeFileSync("./qsl-data/meta.hash_local", content);
+    });
+}
+
+const getHash = (content) => {
+    var hash = crypto.createHash('md5');
+    //passing the data to be hashed
+    data = hash.update(content, 'utf-8');
+    //Creating the hash in the required format
+    gen_hash = data.digest('hex');
+    return gen_hash;
+}
+
 const downloadFile = (url, destination) => {
     return new Promise((resolve) => {
         const file = fs.createWriteStream(destination);
 
-        const request = https.get(url, (response) => {
+        const protClass = (url.indexOf("http://") > -1) ? http : https;
+        const request = protClass.get(url, (response) => {
             if (response.statusCode === 200) {
                 response.pipe(file);
                 file.on('finish', () => {
@@ -127,8 +190,12 @@ const getRecursiveFolders = async (dir_path, folder_path = "", folders = []) => 
     return folders;
 }
 
+const getFileFromZip = (path) => {
+}
+
 module.exports = {
     checkDependencies,
+    checkMeta,
     getFileList,
     getRecursiveFolders,
     getDriveList

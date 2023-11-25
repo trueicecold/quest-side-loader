@@ -1,5 +1,5 @@
 <script type="text/template" id="installed_package_template">
-    <tr>
+    <tr data-package="$$PACKAGE$$">
         <td><div class="image_container"><img class="align-middle" src="$$ICON$$"/></div></td>
         <td class="align-middle">$$NAME$$</td>
         <td class="align-middle">$$PACKAGE$$</td>
@@ -9,9 +9,9 @@
                 <i class="fa fa-gear"></i>
             </a>
             <ul class="dropdown-menu dropdown-user">
-                <li><a href="#" class="dropdown-item">Uninstall</a>
+                <li onclick="showUninstallModal($(this).parents('tr'))"><a class="dropdown-item">Uninstall</a>
                 </li>
-                <li><a href="#" class="dropdown-item">Backup App & OBB</a>
+                <li><a class="dropdown-item">Backup App & OBB</a>
                 </li>
             </ul>
             <!--button class="btn btn-danger btn-sm" onclick="uninstallApp('')">Uninstall</button-->
@@ -34,3 +34,17 @@
     <tbody id="installed_packages_container">
     </tbody>
 </table>
+
+<div class="modal fade" id="uninstall_package_modal" tabindex="-1" role="dialog"
+    aria-labelledby="uninstall_package_modal_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body">Uninstall <span class="uninstall_package_name"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="uninstallPackage()">Uninstall</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
