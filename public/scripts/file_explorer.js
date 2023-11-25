@@ -3,10 +3,11 @@ let selectedAPK = {
 };
 
 const changeDrive = () => {
-    getFileList("d:/torrent downloads/quest 2/Another Fisherman's Tale v51+1.078 -VRP"/*$("#drive_selector").val()*/);
+    getFileList($("#drive_selector").val());
 }
 
 const getFileList = async (dir_path = "d:/torrent downloads/quest 2") => {
+    dir_path += "\\";
     $.post("/api/file_list", { path: dir_path }, (data) => {
         $("#files_container").empty();
         
@@ -99,12 +100,15 @@ const getInstallProgress = () => {
                 $("#apk_progress").html("");
             }
 
-            if (data.state == "copying_obb") {
+            if (data.state == "copying_obb" || data.state == "running_install") {
                 $("#progress_" + data.state).html(data.fileIndex + " / " + data.fileTotal);
-                $("#obb_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
             }
             else {
-                $("#obb_progress").html("");
+                $("#copying_obb_progress_caption");
+                $("#running_install_progress_caption");
+            }
+            if (data.state == "copying_obb") {
+                $("#" + data.state + "_progress_caption").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total) + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)");
             }
         }
     });
@@ -127,7 +131,7 @@ const installPackage = () => {
     $.post("/api/install_package", selectedAPK, (data) => {
         if (data.status == 1) {
             clearInterval(installProgressInterval);
-            $("#install_package_progress .modal-body .badge").removeClass().addClass("badge");
+            $("#install_package_progress .modal-body .badge").removeClass().addClass("badge").addClass("badge-primary");
             $("#install_package_progress .modal-body .badge").html("Done");
         }
         else {
@@ -141,7 +145,7 @@ const installPackage = () => {
     });
     getInstallProgress();
     clearInterval(installProgressInterval);
-    installProgressInterval = setInterval(getInstallProgress, 250);
+    installProgressInterval = setInterval(getInstallProgress, 1000);
 }
 
 $.get("/api/drive_list", (data) => {

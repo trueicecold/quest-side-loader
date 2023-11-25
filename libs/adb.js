@@ -177,6 +177,8 @@ let transferStart;
 let installDetails = {
 };
 const installPackage = async (package_path, has_obb = false, has_install = false) => {
+    let packageFolder = package_path.substr(0, package_path.lastIndexOf("/"));
+    let packageName =   package_path.split("/").pop();
     has_obb = has_obb == "true" ? true : false;
     installDetails = {
         state: "copying_apk"
@@ -243,21 +245,44 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                     installDetails.state = "running_install";
                     let install_lines = fs.readFileSync(package_path, 'utf8');
                     install_lines = install_lines.split("\n");
-                    let command_response;
-                    install_lines.forEach(async (line) => {
-                        //line = path.join(__dirname, "..", "qsl-tools", line);
+                    install_lines.forEach(async (line, index) => {
+                        line = line.trim();
                         try {
-                            console.log(global.qslToolsHome + path.sep + line);
-                            command_response = await execSync(global.qslToolsHome + path.sep + line, { cwd: package_path.substr(0, package_path.lastIndexOf("/")) });
-                            console.log(command_response);
+                            //Detect folder push in install.txt and create folders (Quest 3 fix)
+                            if (line.toLowerCase().indexOf("adb push") == 0) {
+                                let folderToPush = line.split(/\s/g)[2];
+                                let folderToPushStat = fs.statSync(path.join(packageFolder, folderToPush));
+                                if (folderToPushStat.isDirectory()) {
+                                    await shell("mkdir " + line.split(/\s/g)[3] + "/" + folderToPush);
+                                    let recursiveFolders = await fileManager.getRecursiveFolders(path.join(packageFolder, folderToPush));
+                                    recursiveFolders.forEach(async (item) => {
+                                        if (item.directory) {
+                                            await shell("mkdir " + line.split(/\s/g)[3] + "/" + folderToPush + item.path);
+                                        }
+                                    });
+                                }
+                            }
+                            installDetails.command = line;
+                            installDetails.fileIndex = index + 1;
+                            installDetails.fileTotal = install_lines.length;
+                            let command_response;
+                            switch (true) {
+                                case line.toLowerCase().indexOf("adb push") == 0:
+                            }
+                            command_response = await execSync(global.qslToolsHome + path.sep + line, { cwd: packageFolder });
+                            installDetails.fileIndex++;
+                            if (installDetails.fileIndex == install_lines.length) {
+                                installDetails.state = "done";
+                                resolve({
+                                    status: 1
+                                });
+                            }
                         }
                         catch(e) {
-                            console.log(e.message);
-                        }
-                    });
-                    
-                    resolve({
-                        status: 1
+                            resolve({
+                                status: 0
+                            });                            
+                        }                        
                     });
                 }
             }
@@ -280,6 +305,9 @@ const installPackage = async (package_path, has_obb = false, has_install = false
             error: "No device connected"
         };
     }
+}
+
+const pushFolder = async (local_path, remote_path) => {
 }
 
 const onPushProgress = (transferred) => {

@@ -4,6 +4,10 @@ const fileManager = require("./managers/file");
 const adbManager = require("./managers/adb");
 const webServerManager = require("./managers/web_server");
 
+process.on("unhandledRejection", function (reason, promise) {
+    console.log("BLUEBIRDDDDD");
+    console.log(reason);
+});
 
 const dependencies = [
     "https://raw.githubusercontent.com/awake558/adb-win/master/SDK_Platform-Tools_for_Windows/platform-tools_r34.0.5-windows/adb.exe",
