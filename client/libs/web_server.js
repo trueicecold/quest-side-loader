@@ -8,6 +8,7 @@ const os = require('os');
 
 const adbManager = require("../managers/adb");
 const fileManager = require("../managers/file");
+const metadataManager = require("../managers/metadata");
 
 const app = express();
 
@@ -42,6 +43,10 @@ app.get("/api/auto_connect", async (req, res) => {
 
 app.get("/api/device_data", (req, res) => {
     res.send(adbManager.getDeviceData());
+});
+
+app.get("/api/package_image", (req, res) => {
+    res.end(metadataManager.getImage(req.query.p), "binary");
 });
 
 app.get("/api/drive_list", async (req, res) => {

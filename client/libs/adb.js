@@ -8,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 
 const fileManager = require("../managers/file");
+const metadataManager = require("../managers/metadata");
 const util = require("../libs/util");
 
 const tmp_apk_path = "/data/local/tmp/install.apk";
@@ -127,26 +128,27 @@ const disconnectDevice = async (device) => {
     }
 }
 
-const getPackagePrettyName = async (packageName) => {
-    return packageName;
+const getPackagePrettyName = (packageName) => {
+    return metadataManager.getEntry(packageName).name;
 }
 
 const getInstalledPackages = async () => {
     if (global.adbDevice) {
-        let installedPackagedObject = {}
-        global.installedPackaged = await global.adbDevice.getPackages("-3 --show-versioncode");
-        global.installedPackaged = global.installedPackaged.map(async (app) => {
+        let installedPackagesObject = {}
+        global.installedPackages = await global.adbDevice.getPackages("-3 --show-versioncode");
+        global.installedPackages = global.installedPackages.map(async (app) => {
             app = app.replace(" versionCode:", ":");
-            if (app.indexOf("com.oculus") == -1 && app.indexOf("com.facebook") == -1 && app.indexOf("com.whatsapp") == -1) {
-                installedPackagedObject[app.split(":")[0]] = {
-                    version: app.split(":")[1],
-                    name: await getPackagePrettyName(app.split(":")[0]),
-                    has_image: fs.existsSync(path.join(__dirname, '..', 'public', 'remote_assets', 'iconpack_quest', app.split(":")[0] + '.jpg'))
+            app = app.split(":");
+            if (global.blacklist_apps.indexOf(app[0].toLowerCase()) == -1) {
+                installedPackagesObject[app[0]] = {
+                    version: app[1],
+                    package: app[0],
+                    name: getPackagePrettyName(app[0]),
+                    image: "/api/package_image?p=" + app[0]
                 };
             }
-            return app.replace(" versionCode:", ":");
         });
-        global.installedPackaged = installedPackagedObject;
+        global.installedPackages = installedPackagesObject;
     }
 }
 

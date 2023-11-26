@@ -3,6 +3,7 @@ require("./global");
 const fileManager = require("./managers/file");
 const adbManager = require("./managers/adb");
 const webServerManager = require("./managers/web_server");
+const metadataManager = require("./managers/metadata");
 
 process.on("unhandledRejection", function (reason, promise) {
     console.log("BLUEBIRDDDDD");
@@ -34,6 +35,7 @@ const init = async () => {
 
     webServerManager.init();
     adbManager.init();
+    metadataManager.init();
 }
 
 init();

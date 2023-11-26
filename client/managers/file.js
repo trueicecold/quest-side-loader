@@ -5,7 +5,6 @@ const nodeDiskInfo = require("node-disk-info");
 const https = require("https");
 const http = require("http");
 var crypto = require('crypto');
-var AdmZip = require("adm-zip");
 
 let metaZipFile;
 

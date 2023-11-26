@@ -23,7 +23,7 @@ const getDeviceData = () => {
         connected_device: global.adbDevice ? global.adbDevice.serial : "",
         devices: global.devices,
         battery: global.battery,
-        installed_packages: global.installedPackaged,
+        installed_packages: global.installedPackages,
         memory: global.memory,
         firmware: global.firmware,
         storage: global.storage
