@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">QSL</string>
+    <string name="title_activity_main">QSL</string>
+    <string name="package_name">com.trueicecold.qsl</string>
+    <string name="custom_url_scheme">com.trueicecold.qsl</string>
+</resources>

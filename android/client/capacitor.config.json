@@ -1,0 +1,17 @@
+{
+  "appId": "com.trueicecold.qsl",
+  "appName": "QSL",
+  "bundledWebRuntime": false,
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    },
+    "CapacitorNodeJS": {
+      "nodeDir": "nodejs"
+    }
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
