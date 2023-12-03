@@ -10,17 +10,22 @@ process.on("unhandledRejection", function (reason, promise) {
     console.log(reason);
 });
 
-const dependencies = [
-    "https://raw.githubusercontent.com/awake558/adb-win/master/SDK_Platform-Tools_for_Windows/platform-tools_r34.0.5-windows/adb.exe",
-    "https://raw.githubusercontent.com/awake558/adb-win/master/SDK_Platform-Tools_for_Windows/platform-tools_r34.0.5-windows/AdbWinApi.dll",
-    "https://raw.githubusercontent.com/awake558/adb-win/master/SDK_Platform-Tools_for_Windows/platform-tools_r34.0.5-windows/AdbWinUsbApi.dll"
-];
+const dependencies = {
+    "win32": [
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/win32/adb.exe",
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/win32/AdbWinApi.dll",
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/win32/AdbWinUsbApi.dll"
+    ],
+    "linux": [
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/linux/adb"
+    ]
+};
 
-const meta_url = "http://159.65.219.115/meta.zip";
-const meta_hash = "http://159.65.219.115/meta.hash";
+const meta_url = "https://raw.githubusercontent.com/trueicecold/quest-side-loader-meta/main/meta.zip";
+const meta_hash = "https://raw.githubusercontent.com/trueicecold/quest-side-loader-meta/main/meta.hash";
 
 const init = async () => {
-    const dependenciesResponse = await fileManager.checkDependencies(dependencies);
+    const dependenciesResponse = await fileManager.checkDependencies(dependencies[process.platform]);
     const metaResponse = await fileManager.checkMeta(meta_url, meta_hash);
     
     if (!dependenciesResponse) {

@@ -208,7 +208,7 @@ const backupApp = async (package_name) => {
             await pullFile(realPackage.package_path, path.join(backupFolder, realPackage.package + ".apk"));
             let obbFound = await fileExists(remoteObbFolder);
             if (obbFound) {
-                execSync(global.qslToolsHome + path.sep + "adb.exe pull " + remoteObbFolder + "/. \"" + path.join(backupFolder, realPackage.package + "\""));
+                execSync(global.qslToolsHome + path.sep + global.binName + " pull " + remoteObbFolder + "/. \"" + path.join(backupFolder, realPackage.package + "\""));
             }
             return {
                 status: 1
@@ -241,7 +241,7 @@ const backupData = async (package_name) => {
                 }
                 let dataFound = await fileExists(remoteDataFolder);
                 if (dataFound) {
-                    execSync(global.qslToolsHome + path.sep + "adb.exe pull " + remoteDataFolder + "/. \"" + path.join(backupFolder, realPackage.package + "\""));
+                    execSync(global.qslToolsHome + path.sep + global.binName + " pull " + remoteDataFolder + "/. \"" + path.join(backupFolder, realPackage.package + "\""));
                 }
                 return {
                     status: 1
@@ -521,7 +521,7 @@ const sendWakeup = async () => {
 
 const init = () => {
     adbClient = Adb.createClient({
-        bin: './qsl-tools/adb.exe'
+        bin: './qsl-tools/' + global.binName
     });
 
     readDeviceData();
