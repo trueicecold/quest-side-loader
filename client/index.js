@@ -14,10 +14,12 @@ const dependencies = {
     "win32": [
         "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/win32/adb.exe",
         "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/win32/AdbWinApi.dll",
-        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/win32/AdbWinUsbApi.dll"
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/win32/AdbWinUsbApi.dll",
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/7zip/win32/7za.exe",
     ],
     "linux": [
-        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/linux/adb"
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/linux/adb",
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/7zip/linux/7za",
     ]
 };
 

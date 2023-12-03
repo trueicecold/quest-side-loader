@@ -339,6 +339,7 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                 else { // install.txt run
                     installDetails.state = "running_install";
                     let install_lines = fs.readFileSync(package_path, 'utf8');
+                    install_lines = install_lines.trim();
                     install_lines = install_lines.split("\n");
                     for (let line_index = 0; line_index < install_lines.length; line_index++) {
                         line = install_lines[line_index].trim();
@@ -402,6 +403,10 @@ const createOBBFolder = async (packageName) => {
     await shell("mkdir " + global.obbPath + packageName);
 }
 
+const removeDataFolder = async (packageName) => {
+    await shell("rm -rf " + global.dataPath + packageName);
+}
+
 const createOBBFolders = async (directories, packageName) => {
     //recursive create folders before copying files, due to permissions error on quest 3
     directories.forEach(async (item) => {
@@ -422,7 +427,11 @@ const getInstallProgress = async () => {
 const uninstallPackage = async (packageName) => {
     if (global.adbDevice) {
         try {
-            await global.adbDevice.uninstall(packageName);
+            if (package && package.trim() != "") {
+                await global.adbDevice.uninstall(packageName);
+                await removeOBBFolder(packageName);
+                await removeDataFolder(packageName);
+            }
             return {
                 status: 1
             }

@@ -20,7 +20,7 @@ const getInstalledPackages = async () => {
 let uninstallRow = null;
 let uninstallPackageName = null;
 const showUninstallModal = async (row) => {
-    uninstallRow = $(row).data("package");
+    uninstallRow = row;
     uninstallPackageName = $(row).data("package");
     $("#uninstall_package_modal").modal("show");
     $(".uninstall_package_name").html(uninstallPackageName);
@@ -30,6 +30,7 @@ const uninstallPackage = async () => {
     $.post("/api/uninstall_package", { package: uninstallPackageName }, (data) => {
         if (data) {
             if (data.status) {
+                $("#uninstall_package_modal").modal("hide");
                 uninstallRow.remove();
             }
             else {
