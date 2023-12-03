@@ -10,6 +10,7 @@ const getFileList = async (dir_path = "d:/torrent downloads/quest 2") => {
     dir_path += "\\";
     $.post("/api/file_list", { path: dir_path }, (data) => {
         $("#files_container").empty();
+        $("#path").val(data.path);
         
         var apks = data.files.filter(file => file.name.endsWith(".apk"));
 

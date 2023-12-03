@@ -16,7 +16,7 @@ const dependencies = [
     "https://raw.githubusercontent.com/awake558/adb-win/master/SDK_Platform-Tools_for_Windows/platform-tools_r34.0.5-windows/AdbWinUsbApi.dll"
 ];
 
-const meta_url = "http://159.65.219.115/meta.7z";
+const meta_url = "http://159.65.219.115/meta.zip";
 const meta_hash = "http://159.65.219.115/meta.hash";
 
 const init = async () => {

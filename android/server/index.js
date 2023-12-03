@@ -6,17 +6,22 @@ const os = require('os');
 const app = express();
 
 app.get("/api/download", async (req, res) => {
-    const filePath = "D:\\Torrent Downloads\\Elemental.2023.720p.BluRay.HebSubs.x264-PiGNUS\\Elemental.2023.720p.BluRay.HebSubs.x264-PiGNUS.mkv";
-    const data = fs.createReadStream(filePath);
-    const disposition = 'attachment; filename="Allegiant.2016.1080p.BluRay.x264.AC3-FuzerHD.mkv"';
+    try {
+        const filePath = "D:\\Plex\\Movies\\The.Hunger.Games.PACK.1080p.BluRay.x264-Scene\\The.Hunger.Games.1080p.BluRay.X264-BLOW.mkv";
+        const data = fs.createReadStream(filePath);
+        const disposition = 'attachment; filename="Allegiant.2016.1080p.BluRay.x264.AC3-FuzerHD.mkv"';
 
-    res.setHeader('Content-Type', "application/octet-stream");
-    res.setHeader('Content-Disposition', disposition);
+        res.setHeader('Content-Length', fs.lstatSync(filePath).size);
+        res.setHeader('Content-Type', "application/octet-stream");
+        res.setHeader('Content-Disposition', disposition);
 
-    data.pipe(res);
+        data.pipe(res);
+    }
+    catch(e) {
+    }
 });
 
-app.listen(9595, () => {
+app.listen(9999, () => {
     console.log('QSL is connected.');
     const interfaces = os.networkInterfaces();
     for (var key in interfaces) {

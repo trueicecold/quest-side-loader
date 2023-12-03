@@ -42,4 +42,50 @@ const uninstallPackage = async () => {
     });
 }
 
+const backupApp = async (row) => {
+    $("#backup_progress").modal("show");
+    $("#backup_progress_caption").html("Backing up app");
+    $("#progress_stage").removeClass().addClass("badge badge-warning").html("Processing");
+    $("#backup_type").html("App");    
+    $.post("/api/backup_app", { package: $(row).data("package") }, (data) => {
+        if (data) {
+            if (data.status) {
+                $("#progress_stage").removeClass().addClass("badge badge-primary").html("Done");
+            }
+            else {
+                $("#progress_stage").removeClass().addClass("badge badge-danger").html("Failed");
+                $("#backup_error").html("Failed to backup app: " + data.error);
+            }
+        }
+        else {
+            $("#progress_stage").removeClass().addClass("badge badge-danger").html("Failed");
+            $("#backup_error").html("Failed to backup app");
+        }
+        $("#close_button").removeAttr("disabled");
+    });
+}
+
+const backupData = async (row) => {
+    $("#backup_progress").modal("show");
+    $("#backup_progress_caption").html("Backing up app data");
+    $("#progress_stage").removeClass().addClass("badge badge-warning").html("Processing");
+    $("#backup_type").html("App data");
+    $.post("/api/backup_data", { package: $(row).data("package") }, (data) => {
+        if (data) {
+            if (data.status) {
+                $("#progress_stage").removeClass().addClass("badge badge-primary").html("Done");
+            }
+            else {
+                $("#progress_stage").removeClass().addClass("badge badge-danger").html("Failed");
+                $("#backup_error").html("Failed to backup app data: " + data.error);
+            }
+        }
+        else {
+            $("#progress_stage").removeClass().addClass("badge badge-danger").html("Failed");
+            $("#backup_error").html("Failed to backup app data");
+        }
+        $("#close_button").removeAttr("disabled");
+    });
+}
+
 getInstalledPackages();

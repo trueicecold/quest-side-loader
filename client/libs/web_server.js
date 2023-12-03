@@ -46,7 +46,13 @@ app.get("/api/device_data", (req, res) => {
 });
 
 app.get("/api/package_image", (req, res) => {
-    res.end(metadataManager.getImage(req.query.p), "binary");
+    let package_image = metadataManager.getImage(req.query.p);
+    if (package_image) {
+        res.end(package_image, "binary");
+    }
+    else {
+        res.redirect("/images/default_thumb.png");
+    }
 });
 
 app.get("/api/drive_list", async (req, res) => {
@@ -67,6 +73,14 @@ app.get("/api/install_progress", async (req, res) => {
 
 app.post("/api/uninstall_package", async (req, res) => {
     res.send(await adbManager.uninstallPackage(req.body.package));
+});
+
+app.post("/api/backup_app", async (req, res) => {
+    res.send(await adbManager.backupApp(req.body.package));
+});
+
+app.post("/api/backup_data", async (req, res) => {
+    res.send(await adbManager.backupData(req.body.package));
 });
 
 app.use(express.static(path.join(__dirname, '..', 'public')));

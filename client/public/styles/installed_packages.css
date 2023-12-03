@@ -1,13 +1,35 @@
-#installed_packages_container .image_container {
-    width: 150px;
-    height: 80px;
-    background-color: #000;
-    border: 1px solid #000;
-    text-align:center;
-}
+body.installed_packages {
+    & #installed_packages_container .image_container {
+        width: 150px;
+        height: 80px;
+        background-color: #000;
+        border: 1px solid #000;
+        text-align: center;
+    }
 
-#installed_packages_container img {
-    max-width:150px;
-    max-height:78px;
-    margin:0 auto;
+    #installed_packages_container img {
+        max-width: 150px;
+        max-height: 78px;
+        margin: 0 auto;
+    }
+
+    & .table_scroll {
+        overflow-y: auto;
+        max-height: calc(100vh - 150px);
+    }
+
+    & .installed_packages_table {
+        height: 100%;
+
+        & thead tr, thead th {
+            top: 0px;
+            position: sticky;
+            background-color: #fff;
+        }
+    }
+
+    & #backup_progress_caption {
+        width:160px;
+        display: inline-block;
+    }
 }

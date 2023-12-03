@@ -9,19 +9,23 @@ var crypto = require('crypto');
 let metaZipFile;
 
 const checkDependencies = async (dependencies) => {
+    if (!fs.existsSync(global.qslBackup)) {
+        fs.mkdirSync(global.qslBackup);
+    }
+
     let dependenciesExist = true;
     for (let i = 0; i < dependencies.length; i++) {
         let dependency = dependencies[i];
         if (dependenciesExist) {
             let fileName = dependency.substr(dependency.lastIndexOf("/") + 1);
-            if (!fs.existsSync("./qsl-tools")) {
-                fs.mkdirSync("./qsl-tools");
+            if (!fs.existsSync(global.qslToolsHome)) {
+                fs.mkdirSync(global.qslToolsHome);
             }
-            if (!fs.existsSync("./qsl-tools/" + fileName)) {
+            if (!fs.existsSync(global.qslToolsHome + "/" + fileName)) {
                 dependenciesExist = false;
                 console.log("Missing " + fileName + ", Downloading...");
                 try {
-                    dependenciesExist = await downloadFile(dependency, "./qsl-tools/" + fileName);
+                    dependenciesExist = await downloadFile(dependency, global.qslToolsHome + "/" + fileName);
                 }
                 catch (e) {
                     dependenciesExist = false;
@@ -34,18 +38,18 @@ const checkDependencies = async (dependencies) => {
 
 const checkMeta = async (meta_url, meta_hash) => {
     let metaDownload = true;
-    if (!fs.existsSync("./qsl-data")) {
-        fs.mkdirSync("./qsl-data");
+    if (!fs.existsSync(global.qslDataHome)) {
+        fs.mkdirSync(global.qslDataHome);
     }
-    if (!fs.existsSync("./qsl-data/meta.7z")) {
+    if (!fs.existsSync(global.qslDataHome + "/meta.zip")) {
         console.log("Missing meta file, downloading...");
         metaDownload = true;
     }
     else {
-        if (fs.existsSync("./qsl-data/meta.hash_local")) {
-            const meta_local = fs.readFileSync("./qsl-data/meta.hash_local", "utf-8");
-            await downloadFile(meta_hash, "./qsl-data/meta.hash");
-            const meta_remote = fs.readFileSync("./qsl-data/meta.hash", "utf-8");
+        if (fs.existsSync(global.qslDataHome + "/meta.hash_local")) {
+            const meta_local = fs.readFileSync(global.qslDataHome + "/meta.hash_local", "utf-8");
+            await downloadFile(meta_hash, global.qslDataHome + "/meta.hash");
+            const meta_remote = fs.readFileSync(global.qslDataHome + "/meta.hash", "utf-8");
             if (meta_local == meta_remote) {
                 metaDownload = false;
                 //console.log(metaZipFile.getData())
@@ -57,7 +61,7 @@ const checkMeta = async (meta_url, meta_hash) => {
         }
     }
     if (metaDownload) {
-        await downloadFile(meta_url, "./qsl-data/meta.7z");
+        await downloadFile(meta_url, global.qslDataHome + "/meta.zip");
         writeLocalMetaHash();
     }
     return true;
@@ -65,7 +69,7 @@ const checkMeta = async (meta_url, meta_hash) => {
 
 const writeLocalMetaHash = () => {
     //Creating a readstream to read the file
-    var myReadStream = fs.createReadStream('./qsl-data/meta.7z');
+    var myReadStream = fs.createReadStream(global.qslDataHome + '/meta.zip');
     var rContents = '' // to hold the read contents;
     myReadStream.on('data', function (chunk) {
         rContents += chunk;
@@ -76,7 +80,7 @@ const writeLocalMetaHash = () => {
     myReadStream.on('end', function () {
         //Calling the getHash() function to get the hash
         var content = getHash(rContents);
-        fs.writeFileSync("./qsl-data/meta.hash_local", content);
+        fs.writeFileSync(global.qslDataHome + "/meta.hash_local", content);
     });
 }
 
@@ -130,6 +134,7 @@ const getDriveList = async () => {
 
 const getFileList = (dir_path) => {
     let files_json = {
+        path: path.normalize(dir_path),
         files: [],
         directories: []
     };

@@ -1,6 +1,6 @@
 const { Adb, DeviceClient } = require('@devicefarmer/adbkit');
 const Bluebird = require('bluebird');
-const execSync = require('child_process').execSync;
+const execSync = require('node:child_process').execSync;
 
 let adbClient;
 
@@ -10,8 +10,6 @@ const path = require("path");
 const fileManager = require("../managers/file");
 const metadataManager = require("../managers/metadata");
 const util = require("../libs/util");
-
-const tmp_apk_path = "/data/local/tmp/install.apk";
 
 const shell = async (command, readResponse = true) => {
     try {
@@ -33,6 +31,11 @@ const shell = async (command, readResponse = true) => {
         console.log(e);
         return "";
     }
+}
+
+const fileExists = async (path) => {
+    let existsResponse = await shell("ls \"" + path + "\" 1>&1 2> /dev/null");
+    return existsResponse;
 }
 
 const autoConnect = async (ip) => {
@@ -129,22 +132,25 @@ const disconnectDevice = async (device) => {
 }
 
 const getPackagePrettyName = (packageName) => {
-    return metadataManager.getEntry(packageName).name;
+    if (metadataManager.getEntry(packageName))
+        return metadataManager.getEntry(packageName).name;
+    else
+        return packageName;
 }
 
 const getInstalledPackages = async () => {
     if (global.adbDevice) {
         let installedPackagesObject = {}
-        global.installedPackages = await global.adbDevice.getPackages("-3 --show-versioncode");
+        global.installedPackages = await global.adbDevice.getPackages("-3 -f --show-versioncode");
         global.installedPackages = global.installedPackages.map(async (app) => {
-            app = app.replace(" versionCode:", ":");
-            app = app.split(":");
-            if (global.blacklist_apps.indexOf(app[0].toLowerCase()) == -1) {
-                installedPackagesObject[app[0]] = {
-                    version: app[1],
-                    package: app[0],
-                    name: getPackagePrettyName(app[0]),
-                    image: "/api/package_image?p=" + app[0]
+            app = app.replace(/(.+)=(.+)\sversionCode:(.+)/ig, "$1\n$2\n$3").split("\n");
+            if (global.blacklist_apps.indexOf(app[1]) == -1) {
+                installedPackagesObject[app[1]] = {
+                    package_path: app[0],
+                    version: app[2],
+                    package: app[1],
+                    name: getPackagePrettyName(app[1]),
+                    image: "/api/package_image?p=" + app[1]
                 };
             }
         });
@@ -174,6 +180,98 @@ const pushFile = async (local_path, remote_path) => {
     });
 }
 
+const pullFile = async (remote_path, local_path) => {
+    const pullTransfer = await adbDevice.pull(remote_path);
+
+    await new Bluebird((resolve, reject) => {
+        pullTransfer.on('end', () => {
+            resolve();
+        });
+        pullTransfer.on('progress', () => {
+        });
+        pullTransfer.on('error', (err) => {
+            reject(err);
+        });
+        pullTransfer.pipe(fs.createWriteStream(local_path));
+    });
+}
+
+const backupApp = async (package_name) => {
+    if (global.adbDevice) {
+        let realPackage = global.installedPackages[package_name];
+        let backupFolder = path.join(global.qslBackup, realPackage.name + "-v" + realPackage.version + "-" + realPackage.package + "-app");
+        let remoteObbFolder = global.obbPath + realPackage.package;
+        if (realPackage) {
+            if (!fs.existsSync(backupFolder)) {
+                fs.mkdirSync(backupFolder);
+            }
+            await pullFile(realPackage.package_path, path.join(backupFolder, realPackage.package + ".apk"));
+            let obbFound = await fileExists(remoteObbFolder);
+            if (obbFound) {
+                execSync(global.qslToolsHome + path.sep + "adb.exe pull " + remoteObbFolder + "/. \"" + path.join(backupFolder, realPackage.package + "\""));
+            }
+            return {
+                status: 1
+            }
+        }
+        else {
+            return {
+                status: 0,
+                error: "Package not found"
+            }
+        }
+    }
+    else {
+        return {
+            status: 0,
+            error: "Device not connected"
+        }
+    }
+}
+
+const backupData = async (package_name) => {
+    if (global.adbDevice) {
+        try {
+            let realPackage = global.installedPackages[package_name];
+            let backupFolder = path.join(global.qslBackup, realPackage.name + "-v" + realPackage.version + "-" + realPackage.package + "-data");
+            let remoteDataFolder = global.dataPath + realPackage.package;
+            if (realPackage) {
+                if (!fs.existsSync(backupFolder)) {
+                    fs.mkdirSync(backupFolder);
+                }
+                let dataFound = await fileExists(remoteDataFolder);
+                if (dataFound) {
+                    execSync(global.qslToolsHome + path.sep + "adb.exe pull " + remoteDataFolder + "/. \"" + path.join(backupFolder, realPackage.package + "\""));
+                }
+                return {
+                    status: 1
+                }
+            }
+            else {
+                return {
+                    status: 0,
+                    error: "Package not found"
+                }
+            }
+        }
+        catch (e) {
+            return {
+                status: 0,
+                error: e.message
+            }
+        }
+    }
+    else {
+        return {
+            status: 0,
+            error: "Device not connected"
+        }
+    }
+}
+
+const pullFolder = async (remote_path, local_path) => {
+}
+
 let transferStart;
 let installDetails = {
 };
@@ -194,13 +292,13 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                 if (!has_install) { // Regular install
                     //copy apk to temp folder
                     installDetails.state = "copying_apk";
-                    await pushFile(package_path, tmp_apk_path);
+                    await pushFile(package_path, global.tmpApkPath);
                     
                     installDetails.state = "uninstalling_apk";
                     await global.adbDevice.uninstall(packageName);
 
                     installDetails.state = "installing_apk";
-                    await global.adbDevice.installRemote(tmp_apk_path);
+                    await global.adbDevice.installRemote(global.tmpApkPath);
 
                     if (has_obb) {
                         installDetails.state = "removing_obb";
@@ -222,7 +320,7 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                         //await copyOBBFiles(files, packageName);
 
                         for (let file = 0; file < files.length; file++) {
-                            await pushFile(package_path.substr(0, package_path.lastIndexOf(".")) + files[file].path, "/sdcard/Android/obb/" + packageName + files[file].path);
+                            await pushFile(package_path.substr(0, package_path.lastIndexOf(".")) + files[file].path, global.obbPath + packageName + files[file].path);
                             installDetails.fileIndex++;
                         };
 
@@ -283,7 +381,7 @@ const installPackage = async (package_path, has_obb = false, has_install = false
                 });
             }
             finally {
-                shell("rm " + tmp_apk_path);
+                shell("rm " + global.tmpApkPath);
             }
         });
     }
@@ -297,18 +395,18 @@ const installPackage = async (package_path, has_obb = false, has_install = false
 }
 
 const removeOBBFolder = async (packageName) => {
-    await shell("rm -rf /sdcard/Android/obb/" + packageName);
+    await shell("rm -rf " + global.obbPath + packageName);
 }
 
 const createOBBFolder = async (packageName) => {
-    await shell("mkdir /sdcard/Android/obb/" + packageName);
+    await shell("mkdir " + global.obbPath + packageName);
 }
 
 const createOBBFolders = async (directories, packageName) => {
     //recursive create folders before copying files, due to permissions error on quest 3
     directories.forEach(async (item) => {
         if (item.directory) {
-            await shell("mkdir /sdcard/Android/obb/" + packageName + item.path);
+            await shell("mkdir " + global.obbPath + packageName + item.path);
         }
     });
 }
@@ -461,5 +559,7 @@ module.exports = {
     disconnectDevice,
     installPackage,
     getInstallProgress,
-    uninstallPackage
+    uninstallPackage,
+    backupApp,
+    backupData
 }

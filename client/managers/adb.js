@@ -42,6 +42,14 @@ const getInstallProgress = async () => {
     return await adb.getInstallProgress();
 }   
 
+const backupApp = async (package) => {
+    return await adb.backupApp(package);
+}
+
+const backupData = async (package) => {
+    return await adb.backupData(package);
+}
+
 module.exports = {
     init,
     autoConnect,
@@ -50,5 +58,7 @@ module.exports = {
     getDeviceData,
     installPackage,
     getInstallProgress,
-    uninstallPackage
+    uninstallPackage,
+    backupApp,
+    backupData
 }

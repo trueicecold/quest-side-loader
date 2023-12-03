@@ -11,7 +11,9 @@
             <ul class="dropdown-menu dropdown-user">
                 <li onclick="showUninstallModal($(this).parents('tr'))"><a class="dropdown-item">Uninstall</a>
                 </li>
-                <li><a class="dropdown-item">Backup App & OBB</a>
+                <li onclick="backupApp($(this).parents('tr'))"><a class="dropdown-item">Backup App & OBB</a>
+                </li>
+                <li onclick="backupData($(this).parents('tr'))"><a class="dropdown-item">Backup App Data</a>
                 </li>
             </ul>
             <!--button class="btn btn-danger btn-sm" onclick="uninstallApp('')">Uninstall</button-->
@@ -20,20 +22,21 @@
 </script>
 
 <h2>Installed Packages</h2>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <td></td>
-            <td>Name</td>
-            <td>Package</td>
-            <td>Version</td>
-            <td>Actions</td>
-        </tr>
-    </thead>
-    <tbody id="installed_packages_container">
-    </tbody>
-</table>
+<div class="table_scroll m-t-sm">
+    <table class="table table-striped installed_packages_table">
+        <thead>
+            <tr>
+                <td></td>
+                <td>Name</td>
+                <td>Package</td>
+                <td>Version</td>
+                <td>Actions</td>
+            </tr>
+        </thead>
+        <tbody id="installed_packages_container">
+        </tbody>
+    </table>
+</div>
 
 <div class="modal fade" id="uninstall_package_modal" tabindex="-1" role="dialog"
     aria-labelledby="uninstall_package_modal_label" aria-hidden="true">
@@ -44,6 +47,28 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" onclick="uninstallPackage()">Uninstall</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="backup_progress" data-backdrop="static" data-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="backup_progress_modal_label">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">Backup <span class="backup_type"></span>
+                <div id="regular_txt_progress" class="m-t-sm">
+                    <div>
+                        <div id="backup_progress_caption"></div> <span class="badge" id="progress_stage">Pending</span>
+                    </div>
+                </div>
+                <p>
+                <div id="backup_error" class="font-weight-bold text-danger"></div>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="close_button" class="btn btn-secondary" data-dismiss="modal"
+                    disabled>Close</button>
             </div>
         </div>
     </div>

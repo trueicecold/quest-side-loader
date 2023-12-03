@@ -1,4 +1,6 @@
 const AdmZip = require("adm-zip");
+const fs = require("fs");
+const path = require("path");
 
 let zipFile;
 let zipEntries;
@@ -8,7 +10,7 @@ const init = () => {
     zipEntries = zipFile.getEntries();
     for (var i = 0; i < zipEntries.length; i++) {
         if (zipEntries[i].entryName == "VRP-GameList.txt") {
-            let items = zipEntries[i].getData("gL59VfgPxoHR").toString();
+            let items = zipEntries[i].getData(global.metaKey).toString();
             items = items.trim();
             items = items.split("\n");
             items.splice(0,1);
@@ -25,7 +27,7 @@ const init = () => {
         }
 
         if (zipEntries[i].entryName == ".meta/nouns/blacklist.txt") {
-            global.blacklist_apps = zipEntries[i].getData("gL59VfgPxoHR").toString().toLowerCase().trim();
+            global.blacklist_apps = zipEntries[i].getData(global.metaKey).toString().toLowerCase().trim();
             global.blacklist_apps = global.blacklist_apps.split("\n");
         }
     }
@@ -41,10 +43,10 @@ const getEntry = (package) => {
 const getImage = (package) => {
     let entry = zipFile.getEntry(".meta/thumbnails/" + package + ".jpg");
     if (entry) {
-        return entry.getData("gL59VfgPxoHR");
+        return entry.getData(global.metaKey);
     }
     else {
-        return "";
+        return null;
     }
 }
 
