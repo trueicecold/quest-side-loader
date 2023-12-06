@@ -20,6 +20,10 @@ const dependencies = {
     "linux": [
         "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/linux/adb",
         "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/7zip/linux/7za",
+    ],
+    "darwin": [
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/adb/darwin/adb",
+        "https://raw.githubusercontent.com/trueicecold/quest-side-loader/main/client/tools/7zip/darwin/7za",
     ]
 };
 
