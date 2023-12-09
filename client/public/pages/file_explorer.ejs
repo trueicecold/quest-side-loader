@@ -53,30 +53,3 @@
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="install_package_progress" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog"
-    aria-labelledby="install_package_progress_modal_label" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body">Installing <span class="install_package_name"></span>
-                <div id="regular_txt_progress" class="m-t-sm">
-                    <div><div>Copying APK</div> <span class="badge" id="progress_copying_apk">Pending</span><span class="p-w-sm" id="apk_progress"></span></div>
-                    <div><div>Uninstalling APK</div> <span class="badge" id="progress_uninstalling_apk">Pending</span></div>
-                    <div><div>Installing APK</div> <span class="badge" id="progress_installing_apk">Pending</span></div>
-                    <div><div>Removing OBB</div> <span class="badge" id="progress_removing_obb">Pending</span></div>
-                    <div><div>Copying OBB</div> <span class="badge" id="progress_copying_obb">Pending</span><span class="p-w-sm" id="copying_obb_progress_caption"></span></span></div>
-                </div>
-                <div id="install_txt_progress" class="m-t-sm" hidden>
-                    <div><div>Running install.txt</div> <span class="badge" id="progress_running_install">Pending</span><span class="p-w-sm" id="running_install_progress_caption"></span></div>
-                </div>
-                <div hidden><div>All Done</div> <span class="badge" id="progress_done">Pending</span></div>
-                <p>
-                    <div id="install_error" class="font-weight-bold text-danger"></div>
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="close_button" class="btn btn-secondary" data-dismiss="modal" disabled>Close</button>
-            </div>
-        </div>
-    </div>
-</div>

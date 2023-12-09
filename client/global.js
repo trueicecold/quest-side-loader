@@ -1,4 +1,12 @@
 const path = require("path");
+global.managers = {};
+
+global.managers.adb = require("./managers/adb");
+global.managers.queue = require("./managers/queue");
+global.managers.file = require("./managers/file");
+global.managers.metadata = require("./managers/metadata");
+global.managers.webserver = require("./managers/web_server");
+
 global.qslToolsHome = process.pkg ? path.join(path.dirname(process.argv[0]), 'qsl-tools') : path.join(__dirname, 'qsl-tools');
 global.qslDataHome = process.pkg ? path.join(path.dirname(process.argv[0]), 'qsl-data') : path.join(__dirname, 'qsl-data');
 global.qslBackup = process.pkg ? path.join(path.dirname(process.argv[0]), 'qsl-backups') : path.join(__dirname, 'qsl-backups');

@@ -37,7 +37,8 @@
     ],
     "targets": [
       "node18-win-x64",
-      "node18-linux-x64"
+      "node18-linux-x64",
+      "node18-darwin-x64"
     ],
     "assets": [
       "public/**/*"

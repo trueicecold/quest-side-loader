@@ -6,13 +6,10 @@ const fs = require("fs");
 const bodyParser = require('body-parser')
 const os = require('os'); 
 
-const adbManager = require("../managers/adb");
-const fileManager = require("../managers/file");
-const metadataManager = require("../managers/metadata");
-
 const app = express();
 
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json());
 
 app.use(cors({
     credentials: true,
@@ -30,23 +27,23 @@ app.get("/api/own_ip", async (req, res) => {
 });
 
 app.post("/api/device_connect", async (req, res) => {
-    res.send(await adbManager.connectDevice(req.body.serial));
+    res.send(await global.managers.adb.connectDevice(req.body.serial));
 });
 
 app.get("/api/device_disconnect", async (req, res) => {
-    res.send(await adbManager.disconnectDevice());
+    res.send(await global.managers.adb.disconnectDevice());
 });
 
 app.get("/api/auto_connect", async (req, res) => {
-    res.send(await adbManager.autoConnect(req.ip));
+    res.send(await global.managers.adb.autoConnect(req.ip));
 });
 
 app.get("/api/device_data", (req, res) => {
-    res.send(adbManager.getDeviceData());
+    res.send(global.managers.adb.getDeviceData());
 });
 
 app.get("/api/package_image", (req, res) => {
-    let package_image = metadataManager.getImage(req.query.p);
+    let package_image = global.managers.metadata.getImage(req.query.p);
     if (package_image) {
         res.end(package_image, "binary");
     }
@@ -56,31 +53,35 @@ app.get("/api/package_image", (req, res) => {
 });
 
 app.get("/api/drive_list", async (req, res) => {
-    res.send(await fileManager.getDriveList());
+    res.send(await global.managers.file.getDriveList());
 });
 
 app.post("/api/file_list", (req, res) => {
-    res.send(fileManager.getFileList(req.body.path));
+    res.send(global.managers.file.getFileList(req.body.path));
 });
 
 app.post("/api/install_package", async (req, res) => {
-    res.send(await adbManager.installPackage(req));
-});
-
-app.get("/api/install_progress", async (req, res) => {
-    res.send(await adbManager.getInstallProgress());
+    res.send(await global.managers.adb.installPackage(req));
 });
 
 app.post("/api/uninstall_package", async (req, res) => {
-    res.send(await adbManager.uninstallPackage(req.body.package));
+    res.send(await global.managers.adb.uninstallPackage(req.body.package));
 });
 
 app.post("/api/backup_app", async (req, res) => {
-    res.send(await adbManager.backupApp(req.body.package));
+    res.send(await global.managers.adb.backupApp(req.body.package));
 });
 
 app.post("/api/backup_data", async (req, res) => {
-    res.send(await adbManager.backupData(req.body.package));
+    res.send(await global.managers.adb.backupData(req.body.package));
+});
+
+app.get("/api/queue", async (req, res) => {
+    res.send(global.managers.queue.get());
+});
+
+app.post("/api/queue", async (req, res) => {
+    res.send(global.managers.queue.add(req.body.type, req.body.params));
 });
 
 app.use(express.static(path.join(__dirname, '..', 'public')));

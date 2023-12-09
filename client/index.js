@@ -1,10 +1,5 @@
 require("./global");
 
-const fileManager = require("./managers/file");
-const adbManager = require("./managers/adb");
-const webServerManager = require("./managers/web_server");
-const metadataManager = require("./managers/metadata");
-
 process.on("unhandledRejection", function (reason, promise) {
     console.log("BLUEBIRDDDDD");
     console.log(reason);
@@ -31,8 +26,8 @@ const meta_url = "https://raw.githubusercontent.com/trueicecold/quest-side-loade
 const meta_hash = "https://raw.githubusercontent.com/trueicecold/quest-side-loader-meta/main/meta.hash";
 
 const init = async () => {
-    const dependenciesResponse = await fileManager.checkDependencies(dependencies[process.platform]);
-    const metaResponse = await fileManager.checkMeta(meta_url, meta_hash);
+    const dependenciesResponse = await global.managers.file.checkDependencies(dependencies[process.platform]);
+    const metaResponse = await global.managers.file.checkMeta(meta_url, meta_hash);
     
     if (!dependenciesResponse) {
         console.log("Error downloading dependencies");
@@ -44,9 +39,9 @@ const init = async () => {
         process.exit();
     }
 
-    webServerManager.init();
-    adbManager.init();
-    metadataManager.init();
+    global.managers.webserver.init();
+    global.managers.adb.init();
+    global.managers.metadata.init();
 }
 
 init();

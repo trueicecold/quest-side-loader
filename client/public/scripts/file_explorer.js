@@ -1,5 +1,4 @@
 let selectedAPK = {
-
 };
 
 const changeDrive = () => {
@@ -84,73 +83,12 @@ const getFileList = async (dir_path = "d:/torrent downloads/quest 2") => {
     });
 }
 
-let installProgressInterval;
-const getInstallProgress = () => {
-    $.get("/api/install_progress", (data) => {
-        if (!installFailed) {
-            $("#install_package_progress .modal-body .badge").each((index, item) => {
-                if (index < $("#progress_" + data.state).index(".modal-body .badge")) {
-                    $(item).removeClass("badge-warning").addClass("badge-primary");
-                    $(item).html("Done");
-                }
-            });
-
-            $("#progress_" + data.state).addClass("badge-warning");
-            $("#progress_" + data.state).html("Processing");
-            
-            if (data.state == "copying_apk") {
-                $("#apk_progress").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total)/* + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)"*/);
-            }
-            else {
-                $("#apk_progress").html("");
-            }
-
-            if (data.state == "copying_obb" || data.state == "running_install") {
-                $("#progress_" + data.state).html(data.fileIndex + " / " + data.fileTotal);
-            }
-            else {
-                $("#copying_obb_progress_caption");
-                $("#running_install_progress_caption");
-            }
-            if (data.state == "copying_obb") {
-                $("#" + data.state + "_progress_caption").html(humanFileSize(data.transferred) + " out of " + humanFileSize(data.total)/* + " (" + ((data.transferred / data.total) * 100).toFixed(1) + "%)"*/);
-            }
-        }
-    });
-}
-
-let installFailed = false;
 const installPackage = () => {
-    installFailed = false;
-    if (selectedAPK.install) {
-        $("#install_txt_progress").removeAttr("hidden");
-        $("#regular_txt_progress").hide();
-    }
-    else {
-        $("#install_txt_progress").attr("hidden", "");
-        $("#regular_txt_progress").show();
-    }
-    $("#install_package_progress .modal-body .badge").removeClass().addClass("badge");
-    $("#install_package_modal").modal("hide");
-    $("#install_package_progress").modal("show");
-    $.post("/api/install_package", selectedAPK, (data) => {
+    $.post("/api/queue", {type: 0, params: selectedAPK}, (data) => {
         if (data.status == 1) {
-            clearInterval(installProgressInterval);
-            $("#install_package_progress .modal-body .badge").removeClass().addClass("badge").addClass("badge-primary");
-            $("#install_package_progress .modal-body .badge").html("Done");
+            createAlert("Installation added to queue.", "success");
         }
-        else {
-            installFailed = true;
-            $("#progress_running_install").removeClass("badge-warning").addClass("badge-danger").html("Failed");
-            $("#progress_" + data.state).removeClass("badge-warning").addClass("badge-danger").html("Failed");
-            $("#install_error").html(data.error);
-        }
-    }).always(() => {
-        $("#install_package_progress #close_button").removeAttr("disabled");
     });
-    getInstallProgress();
-    clearInterval(installProgressInterval);
-    installProgressInterval = setInterval(getInstallProgress, 1000);
 }
 
 $.get("/api/drive_list", (data) => {

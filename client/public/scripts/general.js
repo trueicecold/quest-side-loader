@@ -4,7 +4,9 @@ $(() => {
     autoConnect();
     getDeviceData();
     getPackageIcons();
+    getQueueStatus();
     setInterval(getDeviceData, 5000);
+    setInterval(getQueueStatus, 1000);
 });
 
 const autoConnect = () => {
@@ -104,4 +106,43 @@ const formatDate = (fullDateString) => {
 
 const addZero = (number) => {
     return number < 10 ? "0" + number : number;
+}
+
+const getQueueStatus = () => {
+    $.get("/api/queue", (data) => {
+        if (data) {
+            let completed = data.queue.completed.filter(item => item.new);
+            console.log(completed);
+            completed.forEach((item) => {
+                switch (item.type) {
+                    case "0":
+                        createAlert(item.params.package + " installed.", "success");
+                        break;
+                    case "1":
+                        createAlert(item.params.package + " backed up.", "success");
+                        break;
+                    case "2":
+                        createAlert(item.params.package + " data backed up.", "success");
+                        break;
+                    case "3":
+                        createAlert(item.params.package + " uninstalled.", "success");
+                        break;
+                }
+            });
+        }
+    });
+}
+
+const createAlert = (message, type) => {
+    var alert = $('<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
+        '<strong>' + message + '</strong>' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span>' +
+        '</button></div>');
+
+    $('#alert_container').prepend(alert);
+
+    setTimeout(function () {
+        alert.alert('close');
+    }, 5000);
 }

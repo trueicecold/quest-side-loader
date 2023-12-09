@@ -30,17 +30,13 @@ const getDeviceData = () => {
     }
 }
 
-const installPackage = async (req) => {
-    return await adb.installPackage(req.body.path, req.body.obb, req.body.install);
+const installPackage = async (path, obb, install) => {
+    return await adb.installPackage(path, obb, install);
 }
 
 const uninstallPackage = async (package) => {
     return await adb.uninstallPackage(package);
 }
-
-const getInstallProgress = async () => {
-    return await adb.getInstallProgress();
-}   
 
 const backupApp = async (package) => {
     return await adb.backupApp(package);
@@ -57,7 +53,6 @@ module.exports = {
     disconnectDevice,
     getDeviceData,
     installPackage,
-    getInstallProgress,
     uninstallPackage,
     backupApp,
     backupData
